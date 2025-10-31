@@ -19,7 +19,7 @@ public class ProdutoController {
 
     @GetMapping
     public List<Produto> listar(){ 
-        return produtoService.listar(); 
+        return produtoService.listarProdutos(); 
     }
 
     @GetMapping("/{id}")
