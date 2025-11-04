@@ -22,7 +22,14 @@ public class ProdutoService {
         return produtoRepository.findById(id).orElseThrow(() -> new NotFoundException("Produto não encontrado"));
     }
 
-    public Produto criar (Produto p) {
+    // CORRIGIDO: Recebe ProdutoDTO e mapeia para a entidade
+    public Produto criar (ProdutoDTO dto) {
+        Produto p = new Produto();
+        p.setNome(dto.nome());
+        p.setDescricao(dto.descricao());
+        p.setPreco(dto.preco());
+        p.setEstoque(dto.estoque());
+        p.setAtivo(dto.ativo());
         return produtoRepository.save(p);
     }
 

@@ -30,6 +30,14 @@ public class Pedido {
         this.total = itens.stream().map(ItemPedido::getSubtotal)
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
     }
+    // (Dentro da classe Pedido)
+    public void adicionarItem(ItemPedido item) {
+        if (item != null) {
+            this.itens.add(item);
+            item.setPedido(this); // Garante o link bidirecional
+        }
+        recalcTotal(); // Recalcula o total a cada item adicionado
+    }
 
 
     public Long getId() { 
