@@ -3,7 +3,6 @@ package com.sudare.ifsc.controller;
 import com.sudare.ifsc.dtos.ProdutoDTO;
 import com.sudare.ifsc.model.Produto;
 import com.sudare.ifsc.services.ProdutoService;
-import jakarta.validation.Validated;
 import org.springframework.http.HttpStatus;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
@@ -29,12 +28,12 @@ public class ProdutoController {
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    public Produto criar(@RequestBody @Valid Produto p){ 
+    public Produto criar(@RequestBody @Validated Produto p){ 
         return produtoService.criar(p); 
     }
 
     @PutMapping("/{id}")
-    public Produto atualizar(@PathVariable Long id, @RequestBody @Valid ProdutoDTO dto){ 
+    public Produto atualizar(@PathVariable Long id, @RequestBody @Validated ProdutoDTO dto){ 
         return produtoService.atualizar(id, dto); 
     }
 
