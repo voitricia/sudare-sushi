@@ -5,6 +5,8 @@ import com.sudare.ifsc.exceptions.NotFoundException;
 import com.sudare.ifsc.model.Produto;
 import com.sudare.ifsc.repositories.ProdutoRepository;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
 import java.util.List;
 
 @Service
@@ -46,5 +48,11 @@ public class ProdutoService {
     public void deletar(Long id) {
         Produto produto = buscar(id);
         produtoRepository.delete(produto);
+    }
+    @Transactional
+    public Produto atualizarAtivo(Long id, boolean ativo) {
+        Produto produto = buscar(id); // Reutiliza seu método 'buscar'
+        produto.setAtivo(ativo);
+        return produtoRepository.save(produto);
     }
 }

@@ -43,4 +43,9 @@ public class ProdutoController {
     public void deletar(@PathVariable Long id){
         produtoService.deletar(id);
     }
+    
+    @PatchMapping("/{id}/ativo")
+    public Produto atualizarAtivo(@PathVariable Long id, @RequestParam boolean ativo) {
+        return produtoService.atualizarAtivo(id, ativo);
+    }
 }

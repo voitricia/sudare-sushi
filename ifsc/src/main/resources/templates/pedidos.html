@@ -15,12 +15,25 @@
       <tbody>
         <tr th:each="p : ${fila}">
           <td th:text="${p.id}">0</td>
-          <td th:text="${p.cliente.nome}">Cliente</td> <td th:text="${#lists.size(p.itens)}">0</td> <td th:text="${'R$ ' + #numbers.formatDecimal(p.total,1,'POINT',2,'COMMA')}">R$ 0,00</td> <td><span class="badge badge-warning" th:text="${p.status}">EM_PREPARO</span></td>
+          <td th:text="${p.cliente.nome}">Cliente</td>
+          <td th:text="${#lists.size(p.itens)}">0</td>
+          <td th:text="${'R$ ' + #numbers.formatDecimal(p.total,1,'POINT',2,'COMMA')}">R$ 0,00</td>
+          <td><span class="badge badge-warning" th:text="${p.status}">EM_PREPARO</span></td>
+          
           <td>
-            <button class="btn btn-sm" data-action="finalizar" th:attr="data-id=${p.id}">Finalizar</button>
-            <button class="btn btn-sm btn-ghost" data-action="cancelar" th:attr="data-id=${p.id}">Cancelar</button>
+            <form th:action="@{/pedidos/atualizar-status}" method="POST" style="display: inline;">
+              <input type="hidden" name="id" th:value="${p.id}" />
+              <input type="hidden" name="status" value="PRONTO" />
+              <button type="submit" class="btn btn-sm">Finalizar</button>
+            </form>
+
+            <form th:action="@{/pedidos/atualizar-status}" method="POST" style="display: inline;">
+              <input type="hidden" name="id" th:value="${p.id}" />
+              <input type="hidden" name="status" value="CANCELADO" />
+              <button type="submit" class="btn btn-sm btn-ghost">Cancelar</button>
+            </form>
           </td>
-        </tr>
+          </tr>
         <tr th:if="${#lists.isEmpty(fila)}"><td colspan="6">Sem pedidos em preparo.</td></tr>
       </tbody>
     </table>
