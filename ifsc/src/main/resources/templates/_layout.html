@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="pt-br" xmlns:th="http://www.thymeleaf.org"
+      th:fragment="layout(pageTitle, active, content)">
+<head>
+  <meta charset="UTF-8"/>
+  <title th:text="${pageTitle}">Sudarê Sushi</title>
+
+  <link rel="stylesheet" th:href="@{/css/style.css}"/>
+</head>
+<body>
+
+<header class="topbar">
+  <a class="brand" th:href="@{/}">Sudarê Sushi</a>
+  <nav class="topnav">
+    <a th:href="@{/}"          th:classappend="${active}=='home' ? 'is-active'">Home</a>
+    <a th:href="@{/pedidos}"   th:classappend="${active}=='pedidos' ? 'is-active'">Pedidos</a>
+    <a th:href="@{/cardapio}"  th:classappend="${active}=='cardapio' ? 'is-active'">Cardápio</a>
+    <a th:href="@{/relatorios}" th:classappend="${active}=='relatorios' ? 'is-active'">Relatórios</a>
+  </nav>
+</header>
+
+<main class="container"
+      th:replace="${content}"> <p>Carregando...</p>
+</main>
+
+<footer class="footer">
+  <small>&copy; <span th:text="${#dates.format(#dates.createNow(), 'yyyy')}"></span> Sudarê Sushi</small>
+</footer>
+
+<script th:src="@{/js/sushi.js}"></script>
+</body>
+</html>

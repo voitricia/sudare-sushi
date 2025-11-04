@@ -1,7 +1,8 @@
 package com.sudare.ifsc.model;
 
 import jakarta.persistence.*;
-import jackarta.persistence.constraints.*;
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotBlank;
 
 @Entity
 public class Cliente {

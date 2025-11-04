@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="pt-br" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{_layout :: layout(${'Pedidos • Sudarê Sushi'}, 'pedidos', ~{::content})}">
+<section th:fragment="content">
+  <h2>Pedidos</h2>
+
+  <div class="form-row">
+    <a class="btn" th:href="@{/pedidos/novo}">Abrir novo pedido</a>
+  </div>
+
+  <h3 id="fila" class="section-subtitle">Fila de preparo</h3>
+  <div class="table-wrap">
+    <table class="table">
+      <thead><tr><th>#</th><th>Cliente</th><th>Itens</th><th>Valor</th><th>Status</th><th>Ações</th></tr></thead>
+      <tbody>
+        <tr th:each="p : ${fila}">
+          <td th:text="${p.id}">0</td>
+          <td th:text="${p.clienteNome}">Cliente</td>
+          <td th:text="${p.itens}">0</td>
+          <td th:text="${'R$ ' + #numbers.formatDecimal(p.valor,1,'POINT',2,'COMMA')}">R$ 0,00</td>
+          <td><span class="badge badge-warning" th:text="${p.status}">EM_PREPARO</span></td>
+          <td>
+            <button class="btn btn-sm" data-action="finalizar" th:attr="data-id=${p.id}">Finalizar</button>
+            <button class="btn btn-sm btn-ghost" data-action="cancelar" th:attr="data-id=${p.id}">Cancelar</button>
+          </td>
+        </tr>
+        <tr th:if="${#lists.isEmpty(fila)}"><td colspan="6">Sem pedidos em preparo.</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+</html>

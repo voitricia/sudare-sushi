@@ -10,7 +10,9 @@ import java.util.List;
 @Service
 public class ClienteService {
     private final ClienteRepository clienteRepository;
-    public ClienteService(ClienteRepository clienteRepository){ this.clienteRepository = clienteRepository; }
+    public ClienteService(ClienteRepository clienteRepository){ 
+        this.clienteRepository = clienteRepository; 
+    }
 
     public List<Cliente> listar(){ 
         return clienteRepository.findAll(); 
@@ -29,7 +31,7 @@ public class ClienteService {
         c.setNome(dto.nome());
         c.setEmail(dto.email());
         c.setTelefone(dto.telefone());
-        return repo.save(c);
+        return clienteRepository.save(c);
     }
     
     public void deletar(Long id){ 

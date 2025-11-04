@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="pt-br" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{_layout :: layout(${'Cardápio • Sudarê Sushi'}, 'cardapio', ~{::content})}">
+
+<section class="section" th:fragment="content">
+  <h2 class="section-title">Itens do cardápio</h2>
+
+  <div class="menu-grid">
+    <div class="menu-card" th:each="p : ${produtos}" th:attr="data-id=${p.id}">
+      <div class="menu-img skeleton"></div>
+      <div class="menu-body">
+        <div class="menu-title" th:text="${p.nome}">Nome</div>
+        <div class="menu-sub" th:text="${p.descricao}">Descrição</div>
+        <div class="menu-foot">
+          <span class="price" th:text="${'R$ ' + #numbers.formatDecimal(p.preco,1,'POINT',2,'COMMA')}">R$ 0,00</span>
+          <div class="menu-actions">
+            <a class="btn btn-sm btn-ghost" th:href="@{'/produtos/editar/' + ${p.id}}">Editar</a>
+            <button class="btn btn-sm" th:if="${p.ativo}" data-action="desativar" th:attr="data-id=${p.id}">Desativar</button>
+            <button class="btn btn-sm" th:unless="${p.ativo}" data-action="ativar" th:attr="data-id=${p.id}">Ativar</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="form-actions mt">
+    <a class="btn" th:href="@{/produtos/novo}">Adicionar produto</a>
+  </div>
+</section>
+
+</html>
