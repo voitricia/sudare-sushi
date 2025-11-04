@@ -2,28 +2,43 @@ package com.sudare.ifsc.repositories;
 
 import com.sudare.ifsc.model.Pedido;
 import com.sudare.ifsc.model.StatusPedido;
-import org.springframework.data.domain.Pageable; // Importar
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.data.jpa.repository.Query; // Importar
-import org.springframework.data.repository.query.Param; // Importar
-import java.util.List; // Importar
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
+
+import java.math.BigDecimal; // Importar
+import java.time.OffsetDateTime; // Importar
+import java.util.List;
 
 public interface PedidoRepository extends JpaRepository<Pedido, Long> {
 
-    /**
-     * Busca pedidos por status, já trazendo o Cliente junto (JOIN FETCH)
-     * para evitar N+1 queries na view.
-     * Ordena pelos mais antigos (ASC) para a fila.
-     */
+    // --- (Métodos que já tínhamos) ---
     @Query("SELECT p FROM Pedido p JOIN FETCH p.cliente c WHERE p.status = :status ORDER BY p.criadoEm ASC")
     List<Pedido> findAllByStatusWithCliente(@Param("status") StatusPedido status);
 
-    /**
-     * Busca todos os pedidos, trazendo o Cliente junto (JOIN FETCH)
-     * e usando Pageable para limitar (ex: "Top 5").
-     * O countQuery é importante para paginação com JOIN FETCH.
-     */
     @Query(value = "SELECT p FROM Pedido p JOIN FETCH p.cliente c",
            countQuery = "SELECT COUNT(p) FROM Pedido p")
     List<Pedido> findAllWithCliente(Pageable pageable);
+
+
+    // --- (NOVOS MÉTODOS PARA O DASHBOARD) ---
+
+    /**
+     * Conta quantos pedidos existem com um determinado status.
+     * (O Spring Data JPA cria a query sozinho)
+     */
+    Long countByStatus(StatusPedido status);
+
+    /**
+     * Conta quantos pedidos foram criados DEPOIS de uma data/hora.
+     */
+    Long countByCriadoEmAfter(OffsetDateTime inicioDoDia);
+
+    /**
+     * Soma o TOTAL de todos os pedidos criados DEPOIS de uma data/hora.
+     * COALESCE garante que retorne 0 em vez de NULL se não houver pedidos.
+     */
+    @Query("SELECT COALESCE(SUM(p.total), 0) FROM Pedido p WHERE p.criadoEm >= :inicioDoDia")
+    BigDecimal sumTotalByCriadoEmAfter(@Param("inicioDoDia") OffsetDateTime inicioDoDia);
 }
