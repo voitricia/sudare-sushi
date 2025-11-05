@@ -49,6 +49,19 @@ public class ProdutoService {
         Produto produto = buscar(id);
         produtoRepository.delete(produto);
     }
+
+    public ProdutoDTO buscarDTO(Long id) {
+        Produto p = buscar(id);
+        return new ProdutoDTO(
+                p.getId(),
+                p.getNome(),
+                p.getDescricao(),
+                p.getPreco(),
+                p.getEstoque(),
+                p.isAtivo()
+        );
+    }
+
     @Transactional
     public Produto atualizarAtivo(Long id, boolean ativo) {
         Produto produto = buscar(id); // Reutiliza seu método 'buscar'
