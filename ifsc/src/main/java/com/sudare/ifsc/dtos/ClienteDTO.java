@@ -1,3 +1,17 @@
 package com.sudare.ifsc.dtos;
 
-public record ClienteDTO(Long id, String nome, String email, String telefone) {}
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotBlank;
+
+public record ClienteDTO(
+        Long id,
+
+        @NotBlank(message = "O nome é obrigatório")
+        String nome,
+
+        @Email(message = "Formato de e-mail inválido")
+        String email,
+
+        String telefone
+) {
+}

@@ -10,20 +10,25 @@ import java.util.List;
 @Service
 public class ClienteService {
     private final ClienteRepository clienteRepository;
-    public ClienteService(ClienteRepository clienteRepository){ 
-        this.clienteRepository = clienteRepository; 
+    public ClienteService(ClienteRepository clienteRepository){
+        this.clienteRepository = clienteRepository;
     }
 
-    public List<Cliente> listar(){ 
-        return clienteRepository.findAll(); 
+    public List<Cliente> listar(){
+        return clienteRepository.findAll();
     }
 
-    public Cliente buscar(Long id){ 
-        return clienteRepository.findById(id).orElseThrow(() -> new NotFoundException("Cliente não encontrado")); 
+    public Cliente buscar(Long id){
+        return clienteRepository.findById(id).orElseThrow(() -> new NotFoundException("Cliente não encontrado"));
     }
 
-    public Cliente criar(Cliente c){ 
-        return clienteRepository.save(c); 
+    // CORRIGIDO: Recebe ClienteDTO e mapeia para a entidade
+    public Cliente criar(ClienteDTO dto){
+        Cliente c = new Cliente();
+        c.setNome(dto.nome());
+        c.setEmail(dto.email());
+        c.setTelefone(dto.telefone());
+        return clienteRepository.save(c);
     }
 
     public Cliente atualizar(Long id, ClienteDTO dto){
@@ -34,7 +39,7 @@ public class ClienteService {
         return clienteRepository.save(c);
     }
     
-    public void deletar(Long id){ 
-        clienteRepository.delete(buscar(id)); 
+    public void deletar(Long id){
+        clienteRepository.delete(buscar(id));
     }
 }

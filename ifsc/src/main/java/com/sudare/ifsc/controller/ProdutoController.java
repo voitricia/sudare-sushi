@@ -9,37 +9,43 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/produtos")
+@RequestMapping("/api/produtos") // CORRIGIDO: Rota padronizada
 public class ProdutoController {
     private final ProdutoService produtoService;
-    public ProdutoController(ProdutoService produtoService){ 
-        this.produtoService = produtoService; 
+    public ProdutoController(ProdutoService produtoService){
+        this.produtoService = produtoService;
     }
 
     @GetMapping
-    public List<Produto> listar(){ 
-        return produtoService.listarProdutos(); 
+    public List<Produto> listar(){
+        return produtoService.listarProdutos();
     }
 
     @GetMapping("/{id}")
-    public Produto buscar(@PathVariable Long id){ 
-        return produtoService.buscar(id); 
+    public Produto buscar(@PathVariable Long id){
+        return produtoService.buscar(id);
     }
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    public Produto criar(@RequestBody @Validated Produto p){ 
-        return produtoService.criar(p); 
+    // CORRIGIDO: Recebe ProdutoDTO, não a entidade Produto
+    public Produto criar(@RequestBody @Validated ProdutoDTO dto){
+        return produtoService.criar(dto);
     }
 
     @PutMapping("/{id}")
-    public Produto atualizar(@PathVariable Long id, @RequestBody @Validated ProdutoDTO dto){ 
-        return produtoService.atualizar(id, dto); 
+    public Produto atualizar(@PathVariable Long id, @RequestBody @Validated ProdutoDTO dto){
+        return produtoService.atualizar(id, dto);
     }
 
     @DeleteMapping("/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void deletar(@PathVariable Long id){ 
-        produtoService.deletar(id); 
+    public void deletar(@PathVariable Long id){
+        produtoService.deletar(id);
+    }
+    
+    @PatchMapping("/{id}/ativo")
+    public Produto atualizarAtivo(@PathVariable Long id, @RequestParam boolean ativo) {
+        return produtoService.atualizarAtivo(id, ativo);
     }
 }

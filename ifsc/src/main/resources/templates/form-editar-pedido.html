@@ -1,0 +1,102 @@
+<!doctype html>
+<html lang="pt-br" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{_layout :: layout('Editar Pedido', 'pedidos', ~{::content})}">
+
+<section class="section" th:fragment="content">
+
+  <h2 class="section-title">Editar Pedido (Etapa 2 de 2)</h2>
+
+  <div class="mt-16">
+    <strong>Pedido ID:</strong> <span th:text="${pedido.id}">#00</span><br/>
+    <strong>Cliente:</strong> <span th:text="${pedido.cliente.nome}">Nome do Cliente</span><br/>
+    <strong>Status:</strong> <span th:text="${pedido.status}">ABERTO</span>
+  </div>
+
+  <hr style="border-color: var(--stroke); margin: 20px 0;"/>
+
+  <h3 class="section-subtitle">Itens do Pedido</h3>
+
+  <div class="table-wrap">
+    <table class="table">
+      <thead>
+        <tr>
+          <th>Produto</th>
+          <th>Qtd.</th>
+          <th>Preço Unit.</th>
+          <th>Subtotal</th>
+          <th>Ação</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr th:each="item : ${pedido.itens}">
+          <td th:text="${item.produto.nome}">Produto</td>
+          <td th:text="${item.quantidade}">1</td>
+          <td th:text="${'R$ ' + #numbers.formatDecimal(item.precoUnitario,1,'POINT',2,'COMMA')}">R$ 0,00</td>
+          <td th:text="${'R$ ' + #numbers.formatDecimal(item.getSubtotal(),1,'POINT',2,'COMMA')}">R$ 0,00</td>
+          <td>
+            <form th:action="@{/pedidos/editar/remover-item}" method="POST">
+              <input type="hidden" name="pedidoId" th:value="${pedido.id}" />
+              <input type="hidden" name="itemPedidoId" th:value="${item.id}" />
+              <button type="submit" class="btn btn-sm btn-ghost">Remover</button>
+            </form>
+          </td>
+        </tr>
+        <tr th:if="${#lists.isEmpty(pedido.itens)}">
+          <td colspan="5" style="text-align: center; color: var(--muted);">
+            Nenhum item adicionado a este pedido.
+          </td>
+        </tr>
+      </tbody>
+      <tfoot>
+        <tr style="font-size: 1.2em; font-weight: 700;">
+          <td colspan="3" style="text-align: right;">TOTAL:</td>
+          <td colspan="2" th:text="${'R$ ' + #numbers.formatDecimal(pedido.total,1,'POINT',2,'COMMA')}">R$ 0,00</td>
+        </tr>
+      </tfoot>
+    </table>
+  </div>
+
+  <hr style="border-color: var(--stroke); margin: 20px 0;"/>
+
+  <h3 class="section-subtitle">Adicionar Novo Item</h3>
+
+  <form th:action="@{/pedidos/editar/adicionar-item}" method="POST" class="form-row">
+    <input type="hidden" name="pedidoId" th:value="${pedido.id}" />
+
+    <div class="form-group" style="flex: 3;">
+      <label for="produtoId">Produto</label>
+      <select id="produtoId" name="produtoId" class="form-control">
+        <option th:each="prod : ${produtos}"
+                th:if="${prod.ativo}"
+                th:value="${prod.id}"
+                th:text="${prod.nome + ' (R$ ' + #numbers.formatDecimal(prod.preco,1,'POINT',2,'COMMA') + ')'}">
+          Produto (Preço)
+        </option>
+      </select>
+    </div>
+
+    <div class="form-group" style="flex: 1;">
+      <label for="quantidade">Quantidade</label>
+      <input type="number" id="quantidade" name="quantidade" value="1" min="1" class="form-control" />
+    </div>
+
+    <div class="form-group" style="align-self: flex-end;">
+      <button type="submit" class="btn">Adicionar</S>
+    </div>
+  </form>
+
+  <div class="form-actions mt-22">
+    <a th:href="@{/pedidos}" class="btn">Concluir Edição (Voltar)</a>
+  </div>
+
+  <style>
+    .form-group label { display: block; margin-bottom: 4px; font-weight: 600; }
+    .form-control {
+      background: var(--panel-2); color: var(--text); border: 1px solid var(--stroke);
+      border-radius: 8px; padding: 10px 12px; width: 100%;
+    }
+    .form-control:focus { border-color: var(--brand); outline: none; }
+  </style>
+
+</section>
+</html>

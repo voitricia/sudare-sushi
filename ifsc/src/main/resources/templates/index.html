@@ -2,30 +2,6 @@
 <html lang="pt-br" xmlns:th="http://www.thymeleaf.org"
       th:replace="~{_layout :: layout(${'Home • Sudarê Sushi'}, 'home', ~{::content})}">
 <section th:fragment="content">
-  <h2 class="section-title">Bem-vinda 👋</h2>
-  <div class="cards">
-    <a th:href="@{/pedidos}" class="quick-card">
-      <div class="quick-ico">🧾</div><div class="quick-title">Novo Pedido</div><div class="quick-sub">Abrir comanda</div>
-    </a>
-    <a th:href="@{/pedidos#fila}" class="quick-card">
-      <div class="quick-ico">📦</div><div class="quick-title">Fila de Pedidos</div><div class="quick-sub">Andamento</div>
-    </a>
-    <a th:href="@{/cardapio}" class="quick-card">
-      <div class="quick-ico">🍣</div><div class="quick-title">Gerenciar Cardápio</div><div class="quick-sub">Produtos e preços</div>
-    </a>
-    <a th:href="@{/relatorios}" class="quick-card">
-      <div class="quick-ico">📈</div><div class="quick-title">Relatórios</div><div class="quick-sub">Vendas</div>
-    </a>
-  </div>
-
-  <h2 class="section-title mt-22">Resumo do dia</h2>
-  <div class="kpi-grid">
-    <div class="kpi"><div class="kpi-label">Pedidos hoje</div><div class="kpi-value" th:text="${stats?.pedidosHoje} ?: 0">0</div></div>
-    <div class="kpi"><div class="kpi-label">Faturamento</div><div class="kpi-value" th:text="${stats!=null ? #numbers.formatDecimal(stats.faturamento,1,'POINT',2,'COMMA') : '0,00'}">0,00</div><div class="kpi-foot">R$</div></div>
-    <div class="kpi"><div class="kpi-label">Em preparo</div><div class="kpi-value" th:text="${stats?.emPreparo} ?: 0">0</div></div>
-    <div class="kpi"><div class="kpi-label">Item + vendido</div><div class="kpi-value" th:text="${stats?.itemTop} ?: '–'">–</div><div class="kpi-foot" th:text="${stats!=null ? stats.itemTopQtd + ' un.' : ''}"></div></div>
-  </div>
-
   <h2 class="section-title mt-22">Últimos pedidos</h2>
   <div class="table-wrap">
     <table class="table">
@@ -33,15 +9,12 @@
       <tbody>
         <tr th:each="p : ${ultimosPedidos}">
           <td th:text="${p.id}">0</td>
-          <td th:text="${p.clienteNome}">Cliente</td>
-          <td th:text="${p.itens}">0</td>
-          <td th:text="${'R$ ' + #numbers.formatDecimal(p.valor,1,'POINT',2,'COMMA')}">R$ 0,00</td>
-          <td>
+          <td th:text="${p.cliente.nome}">Cliente</td> <td th:text="${#lists.size(p.itens)}">0</td> <td th:text="${'R$ ' + #numbers.formatDecimal(p.total,1,'POINT',2,'COMMA')}">R$ 0,00</td> <td>
             <span class="badge"
                   th:classappend="${p.status.name()=='EM_PREPARO'}? ' badge-warning' : (${p.status.name()=='CONCLUIDO'}? ' badge-success':'')"
                   th:text="${p.status}">STATUS</span>
           </td>
-          <td th:text="${p.atualizadoEm}">agora</td>
+          <td th:text="${#temporals.format(p.criadoEm, 'dd/MM HH:mm')}">agora</td> 
         </tr>
         <tr th:if="${#lists.isEmpty(ultimosPedidos)}"><td colspan="6">Sem pedidos recentes.</td></tr>
       </tbody>

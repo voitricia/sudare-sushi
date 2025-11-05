@@ -22,24 +22,25 @@ public class ClienteController {
     }
 
     @GetMapping("/{id}")
-    public Cliente buscar(@PathVariable Long id){ 
-        return clienteService.buscar(id); 
+    public Cliente buscar(@PathVariable Long id){
+        return clienteService.buscar(id);
     }
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    public Cliente criar(@RequestBody @Valid Cliente c){ 
-        return clienteService.criar(c); 
+    // CORRIGIDO: Recebe ClienteDTO, não a entidade Cliente
+    public Cliente criar(@RequestBody @Valid ClienteDTO dto){
+        return clienteService.criar(dto);
     }
 
     @PutMapping("/{id}")
-    public Cliente atualizar(@PathVariable Long id, @RequestBody @Valid ClienteDTO dto){ 
-        return clienteService.atualizar(id, dto); 
+    public Cliente atualizar(@PathVariable Long id, @RequestBody @Valid ClienteDTO dto){
+        return clienteService.atualizar(id, dto);
     }
 
     @DeleteMapping("/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void deletar(@PathVariable Long id){ 
-        clienteService.deletar(id); 
+    public void deletar(@PathVariable Long id){
+        clienteService.deletar(id);
     }
 }

@@ -13,12 +13,23 @@
         <div class="menu-sub" th:text="${p.descricao}">Descrição</div>
         <div class="menu-foot">
           <span class="price" th:text="${'R$ ' + #numbers.formatDecimal(p.preco,1,'POINT',2,'COMMA')}">R$ 0,00</span>
+          
           <div class="menu-actions">
             <a class="btn btn-sm btn-ghost" th:href="@{'/produtos/editar/' + ${p.id}}">Editar</a>
-            <button class="btn btn-sm" th:if="${p.ativo}" data-action="desativar" th:attr="data-id=${p.id}">Desativar</button>
-            <button class="btn btn-sm" th:unless="${p.ativo}" data-action="ativar" th:attr="data-id=${p.id}">Ativar</button>
+            
+            <form th:action="@{/cardapio/atualizar-ativo}" method="POST" style="display: inline;" th:if="${p.ativo}">
+              <input type="hidden" name="id" th:value="${p.id}" />
+              <input type="hidden" name="ativo" value="false" />
+              <button type="submit" class="btn btn-sm">Desativar</button>
+            </form>
+
+            <form th:action="@{/cardapio/atualizar-ativo}" method="POST" style="display: inline;" th:unless="${p.ativo}">
+              <input type="hidden" name="id" th:value="${p.id}" />
+              <input type="hidden" name="ativo" value="true" />
+              <button type="submit" class="btn btn-sm">Ativar</button>
+            </form>
           </div>
-        </div>
+          </div>
       </div>
     </div>
   </div>
