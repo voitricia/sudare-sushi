@@ -16,33 +16,39 @@ import java.util.List;
 
 @Service
 public class PedidoService {
+    // Note que não precisamos mais do ClienteService, só do Repositório
     private final PedidoRepository pedidoRepository;
     private final ClienteRepository clienteRepository;
     private final ProdutoRepository produtoRepository;
-    private final ItemPedidoRepository itemPedidoRepository; // 1. INJEÇÃO ADICIONADA
+    private final ItemPedidoRepository itemPedidoRepository;
 
-    // 2. CONSTRUTOR ATUALIZADO
     public PedidoService(PedidoRepository pedidoRepository,
                          ClienteRepository clienteRepository,
                          ProdutoRepository produtoRepository,
-                         ItemPedidoRepository itemPedidoRepository) { // Adicionado
+                         ItemPedidoRepository itemPedidoRepository) {
         this.pedidoRepository = pedidoRepository;
         this.clienteRepository = clienteRepository;
         this.produtoRepository = produtoRepository;
-        this.itemPedidoRepository = itemPedidoRepository; // Adicionado
+        this.itemPedidoRepository = itemPedidoRepository;
     }
 
-    // ... (métodos listar, buscar, criar(PedidoDTO), atualizarStatus, buscarFilaPreparo, buscarUltimosPedidos...)
+    // ... (métodos listar, buscar, criar(DTO), atualizarStatus, buscarFilaPreparo, buscarUltimosPedidos) ...
+    // (Omitidos por brevidade, mas eles continuam aqui)
     public List<Pedido> listar(){ 
         return pedidoRepository.findAll(); 
     }
     public Pedido buscar(Long id){ 
         return pedidoRepository.findById(id).orElseThrow(() -> new NotFoundException("Pedido não encontrado")); 
     }
-    // (Omitido por brevidade, mas seus métodos antigos continuam aqui)
+
+    @Transactional(readOnly = true)
+    public Pedido buscarCompletoParaEdicao(Long id) {
+        return pedidoRepository.findByIdCompleto(id)
+            .orElseThrow(() -> new NotFoundException("Pedido não encontrado"));
+    }
+
     @Transactional
     public Pedido criar(PedidoDTO dto){
-        // ... (seu método 'criar' completo)
         Cliente cliente = clienteRepository.findById(dto.clienteId()).orElseThrow(() -> new NotFoundException("Cliente não encontrado"));
         Pedido pedido = new Pedido();
         pedido.setCliente(cliente);
@@ -71,57 +77,50 @@ public class PedidoService {
         Pageable pageable = PageRequest.of(0, limite, Sort.by("criadoEm").descending());
         return pedidoRepository.findAllWithCliente(pageable);
     }
-    @Transactional
-    public Pedido criarPedidoHeader(Long clienteId) {
-        Cliente cliente = clienteRepository.findById(clienteId)
-                .orElseThrow(() -> new NotFoundException("Cliente não encontrado"));
-        Pedido pedido = new Pedido();
-        pedido.setCliente(cliente);
-        pedido.setStatus(StatusPedido.ABERTO);
-        pedido.setTotal(BigDecimal.ZERO);
-        return pedidoRepository.save(pedido);
-    }
-
-    // --- 3. NOVOS MÉTODOS (LÓGICA DA ETAPA 2) ---
-
+    
+    
+    // --- MÉTODO DE CRIAÇÃO ÚNICO ---
+    
     /**
-     * Adiciona um item a um pedido existente.
-     * O preço unitário é pego do cadastro atual do produto.
+     * MÉTODO RENOMEADO (era criarPedidoBalcao)
+     * Este é agora o ÚNICO método para criar um pedido.
+     * Salva o nome/observação e associa ao cliente "Consumidor Final".
      */
     @Transactional
+    public Pedido criarNovoPedido(String nomeObservacao) {
+        // 1. Busca o cliente padrão.
+        Cliente clientePadrao = clienteRepository.findByNome("Consumidor Final")
+                .orElseThrow(() -> new RuntimeException("Cliente 'Consumidor Final' não encontrado."));
+
+        // 2. Cria o pedido
+        Pedido pedido = new Pedido();
+        pedido.setCliente(clientePadrao); // Associa ao cliente padrão
+        pedido.setNomeClienteObservacao(nomeObservacao); // Salva a observação
+        pedido.setStatus(StatusPedido.ABERTO);
+        pedido.setTotal(BigDecimal.ZERO);
+
+        return pedidoRepository.save(pedido);
+    }
+    
+    // --- (métodos adicionarItemAoPedido e removerItemDoPedido continuam aqui) ---
+    @Transactional
     public Pedido adicionarItemAoPedido(Long pedidoId, Long produtoId, Integer quantidade) {
-        // 1. Busca os objetos
         Pedido pedido = buscar(pedidoId);
         Produto produto = produtoRepository.findById(produtoId)
                 .orElseThrow(() -> new NotFoundException("Produto não encontrado"));
-
-        // 2. Cria o novo item
         ItemPedido item = new ItemPedido();
         item.setProduto(produto);
         item.setQuantidade(quantidade);
-        item.setPrecoUnitario(produto.getPreco()); // Pega o preço atual do produto
-
-        // 3. Adiciona via helper (que já recalcula o total)
+        item.setPrecoUnitario(produto.getPreco());
         pedido.adicionarItem(item);
-
-        // 4. Salva (Cascade.ALL salva o novo ItemPedido junto)
         return pedidoRepository.save(pedido);
     }
-
-    /**
-     * Remove um item de um pedido existente.
-     */
     @Transactional
     public Pedido removerItemDoPedido(Long pedidoId, Long itemPedidoId) {
-        // 1. Busca os objetos
         Pedido pedido = buscar(pedidoId);
         ItemPedido item = itemPedidoRepository.findById(itemPedidoId)
                 .orElseThrow(() -> new NotFoundException("Item de pedido não encontrado"));
-
-        // 2. Remove via helper (que já recalcula o total)
         pedido.removerItem(item);
-
-        // 3. Salva (orphanRemoval=true deleta o ItemPedido do banco)
         return pedidoRepository.save(pedido);
     }
 }

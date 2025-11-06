@@ -1,24 +1,17 @@
 <!doctype html>
 <html lang="pt-br" xmlns:th="http://www.thymeleaf.org"
-      th:replace="~{_layout :: layout('Novo Pedido', 'pedidos', ~{::content})}">
-
-<section class="section" th:fragment="content">
+      th:replace="~{_layout :: layout('Novo Pedido', 'pedidos', ~{::content})}"> <section class="section" th:fragment="content">
   <h2 class="section-title">Novo Pedido (Etapa 1 de 2)</h2>
-  <p class="mt-16" style="color: var(--muted);">Primeiro, selecione o cliente para este pedido.</p>
+  <p class="mt-16" style="color: var(--muted);">
+    Digite um nome ou observação para identificar este pedido (opcional).
+  </p>
 
   <form method="POST" th:action="@{/pedidos/criar}">
 
     <div class="form-group mt-16">
-      <label for="clienteId">Cliente</label>
-      <select id="clienteId" name="clienteId" class="form-control">
-        <option value="">Selecione um cliente...</option>
-        <option th:each="cliente : ${clientes}"
-                th:value="${cliente.id}"
-                th:text="${cliente.nome}">
-          Nome do Cliente
-        </option>
-      </select>
-    </div>
+      <label for="nomeObservacao">Nome ou Observação</label>
+      <input type="text" id="nomeObservacao" name="nomeObservacao" class="form-control" 
+             placeholder="Ex: Maria (retirada), Mesa 4" /> </div>
 
     <div class="form-actions mt-22">
       <button type="submit" class="btn">Salvar e Adicionar Itens</button>
@@ -33,7 +26,6 @@
       background: var(--panel-2); color: var(--text); border: 1px solid var(--stroke);
       border-radius: 8px; padding: 10px 12px; width: 100%;
     }
-    .form-control:focus { border-color: var(--brand); outline: none; }
   </style>
 </section>
 </html>
