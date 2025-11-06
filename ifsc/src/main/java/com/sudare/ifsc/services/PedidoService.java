@@ -40,6 +40,13 @@ public class PedidoService {
     public Pedido buscar(Long id){ 
         return pedidoRepository.findById(id).orElseThrow(() -> new NotFoundException("Pedido não encontrado")); 
     }
+
+    @Transactional(readOnly = true)
+    public Pedido buscarCompletoParaEdicao(Long id) {
+        return pedidoRepository.findByIdCompleto(id)
+            .orElseThrow(() -> new NotFoundException("Pedido não encontrado"));
+    }
+
     @Transactional
     public Pedido criar(PedidoDTO dto){
         Cliente cliente = clienteRepository.findById(dto.clienteId()).orElseThrow(() -> new NotFoundException("Cliente não encontrado"));

@@ -10,6 +10,7 @@ import org.springframework.data.repository.query.Param;
 import java.math.BigDecimal; // Importar
 import java.time.OffsetDateTime; // Importar
 import java.util.List;
+import java.util.Optional;
 
 public interface PedidoRepository extends JpaRepository<Pedido, Long> {
 
@@ -41,4 +42,11 @@ public interface PedidoRepository extends JpaRepository<Pedido, Long> {
      */
     @Query("SELECT COALESCE(SUM(p.total), 0) FROM Pedido p WHERE p.criadoEm >= :inicioDoDia")
     BigDecimal sumTotalByCriadoEmAfter(@Param("inicioDoDia") OffsetDateTime inicioDoDia);
+
+    @Query("SELECT p FROM Pedido p " +
+           "LEFT JOIN FETCH p.cliente c " +
+           "LEFT JOIN FETCH p.itens i " +
+           "LEFT JOIN FETCH i.produto prod " +
+           "WHERE p.id = :id")
+    Optional<Pedido> findByIdCompleto(@Param("id") Long id);
 }

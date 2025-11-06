@@ -130,7 +130,12 @@ public class PagesController {
     
     @GetMapping("/pedidos/editar/{id}")
     public String mostrarFormEditarPedido(@PathVariable Long id, Model model) {
-        model.addAttribute("pedido", pedidoService.buscar(id));
+        
+        // --- ALTERAÇÃO AQUI ---
+        // Trocamos 'buscar(id)' pelo novo método 'buscarCompletoParaEdicao(id)'
+        model.addAttribute("pedido", pedidoService.buscarCompletoParaEdicao(id));
+        // --- FIM DA ALTERAÇÃO ---
+
         model.addAttribute("produtos", produtoService.listarProdutos());
         return "form-editar-pedido";
     }
