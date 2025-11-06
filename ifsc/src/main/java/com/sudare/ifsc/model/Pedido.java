@@ -51,6 +51,15 @@ public class Pedido {
         recalcTotal(); // Recalcula o total
     }
 
+    private String nomeClienteObservacao;
+
+    public String getNomeClienteObservacao() {
+        return nomeClienteObservacao;
+    }
+
+    public void setNomeClienteObservacao(String nomeClienteObservacao) {
+        this.nomeClienteObservacao = nomeClienteObservacao;
+    }
 
     public Long getId() { 
         return id;

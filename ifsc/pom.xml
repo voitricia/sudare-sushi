@@ -13,7 +13,7 @@
   <groupId>com.sudare</groupId>
   <artifactId>sudare-sushi</artifactId>
   <version>0.0.1-SNAPSHOT</version>
-  <packaging>war</packaging>
+  <packaging>jar</packaging>
   <name>sudare-sushi</name>
   <description>API Sudarê Sushi</description>
 
@@ -60,13 +60,6 @@
       <groupId>org.springdoc</groupId>
       <artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
       <version>2.6.0</version>
-    </dependency>
-
-    <!-- Tomcat fornecido pelo container (WAR) -->
-    <dependency>
-      <groupId>org.springframework.boot</groupId>
-      <artifactId>spring-boot-starter-tomcat</artifactId>
-      <scope>provided</scope>
     </dependency>
 
     <!-- Testes -->
