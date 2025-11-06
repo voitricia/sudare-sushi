@@ -17,9 +17,6 @@ public class Produto {
     @NotNull @DecimalMin("0.0")
     private BigDecimal preco;
 
-    @NotNull @Min(0)
-    private Integer estoque;
-
     private boolean ativo = true;
 
     public Long getId() { 
@@ -46,12 +43,7 @@ public class Produto {
     public void setPreco(BigDecimal preco) { 
         this.preco = preco; 
     }
-    public Integer getEstoque() { 
-        return estoque; 
-    }
-    public void setEstoque(Integer estoque) { 
-        this.estoque = estoque; 
-    }
+
     public boolean isAtivo() { 
         return ativo;
     }

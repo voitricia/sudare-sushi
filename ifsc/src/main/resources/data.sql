@@ -2,11 +2,13 @@
  * 1. INSERÇÃO DE PRODUTOS
  * Removendo a coluna "id". O banco de dados (H2) irá
  * atribuir automaticamente os IDs (1, 2, 3...).
+ *
+
  */
-INSERT INTO PRODUTO (nome, descricao, preco, estoque, ativo) VALUES
-('Combo Califórnia', '8 uramakis + 4 niguiris', 49.90, 50, true),
-('Hot Philadelphia', '10 unidades', 32.00, 40, true),
-('Temaki Salmão', 'Temaki de salmão com cebolinha', 29.00, 30, true);
+INSERT INTO PRODUTO (nome, descricao, preco, ativo) VALUES
+('Combo Califórnia', '8 uramakis + 4 niguiris', 49.90, true),
+('Hot Philadelphia', '10 unidades', 32.00, true),
+('Temaki Salmão', 'Temaki de salmão com cebolinha', 29.00, true);
 
 /*
  * 2. INSERÇÃO DE CLIENTES DE TESTE
