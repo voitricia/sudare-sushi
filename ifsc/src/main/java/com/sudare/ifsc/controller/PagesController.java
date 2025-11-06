@@ -32,7 +32,7 @@ public class PagesController {
         this.pedidoService = pedidoService;
         this.dashboardService = dashboardService;
     }
-
+    
     @GetMapping("/")
     public String home(Model model) {
         model.addAttribute("stats", dashboardService.getDashboardStats());
@@ -71,7 +71,7 @@ public class PagesController {
 
     @GetMapping("/produtos/novo")
     public String mostrarFormNovoProduto(Model model) {
-        ProdutoDTO dto = new ProdutoDTO(null, "", "", BigDecimal.ZERO, true);
+        ProdutoDTO dto = new ProdutoDTO(null, "", BigDecimal.ZERO, true);
         model.addAttribute("produto", dto);
         return "form-produto";
     }
@@ -95,23 +95,18 @@ public class PagesController {
         return "redirect:/cardapio";
     }
 
-
-    // --- FLUXO ÚNICO DE CRIAÇÃO DE PEDIDO ---
-    
     @GetMapping("/pedidos/novo")
     public String mostrarFormNovoPedido() {
         return "form-pedido"; 
     }
-
     @PostMapping("/pedidos/criar")
     public String criarPedido(@RequestParam String nomeObservacao) {
         if(nomeObservacao == null || nomeObservacao.trim().isEmpty()) {
-            nomeObservacao = "Pedido Balcão"; // Valor padrão
+            nomeObservacao = "Pedido Balcão";
         }
         Pedido pedidoSalvo = pedidoService.criarNovoPedido(nomeObservacao);
         return "redirect:/pedidos/editar/" + pedidoSalvo.getId();
     }
-    
     @GetMapping("/pedidos/editar/{id}")
     public String mostrarFormEditarPedido(@PathVariable Long id, Model model) {
         model.addAttribute("pedido", pedidoService.buscarCompletoParaEdicao(id));

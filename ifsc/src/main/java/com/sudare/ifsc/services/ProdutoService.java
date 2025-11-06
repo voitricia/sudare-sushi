@@ -27,7 +27,6 @@ public class ProdutoService {
     public Produto criar (ProdutoDTO dto) {
         Produto p = new Produto();
         p.setNome(dto.nome());
-        p.setDescricao(dto.descricao());
         p.setPreco(dto.preco());
         p.setAtivo(dto.ativo());
         return produtoRepository.save(p);
@@ -36,7 +35,6 @@ public class ProdutoService {
     public Produto atualizar(Long id, ProdutoDTO dto) {
         Produto produto = buscar(id);
         produto.setNome(dto.nome());
-        produto.setDescricao(dto.descricao());
         produto.setPreco(dto.preco());
         produto.setAtivo(dto.ativo());
         return produtoRepository.save(produto);
@@ -52,7 +50,6 @@ public class ProdutoService {
         return new ProdutoDTO(
                 p.getId(),
                 p.getNome(),
-                p.getDescricao(),
                 p.getPreco(),
                 p.isAtivo()
         );
@@ -60,7 +57,7 @@ public class ProdutoService {
 
     @Transactional
     public Produto atualizarAtivo(Long id, boolean ativo) {
-        Produto produto = buscar(id); 
+        Produto produto = buscar(id);
         produto.setAtivo(ativo);
         return produtoRepository.save(produto);
     }
