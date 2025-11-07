@@ -11,14 +11,9 @@ public class Produto {
 
     @NotBlank
     private String nome;
-
-    private String descricao;
-
+    
     @NotNull @DecimalMin("0.0")
     private BigDecimal preco;
-
-    @NotNull @Min(0)
-    private Integer estoque;
 
     private boolean ativo = true;
 
@@ -34,23 +29,12 @@ public class Produto {
     public void setNome(String nome) { 
         this.nome = nome; 
     }
-    public String getDescricao() { 
-        return descricao; 
-    }
-    public void setDescricao(String descricao) { 
-        this.descricao = descricao; 
-    }
+
     public BigDecimal getPreco() { 
         return preco; 
     }
     public void setPreco(BigDecimal preco) { 
         this.preco = preco; 
-    }
-    public Integer getEstoque() { 
-        return estoque; 
-    }
-    public void setEstoque(Integer estoque) { 
-        this.estoque = estoque; 
     }
     public boolean isAtivo() { 
         return ativo;

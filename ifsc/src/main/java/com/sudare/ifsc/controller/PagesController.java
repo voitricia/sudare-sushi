@@ -24,17 +24,15 @@ public class PagesController {
     private final ProdutoService produtoService;
     private final PedidoService pedidoService;
     private final DashboardService dashboardService;
-    // 1. ClienteService REMOVIDO daqui
 
     public PagesController(ProdutoService produtoService,
                            PedidoService pedidoService,
-                           DashboardService dashboardService) { // 2. Removido do construtor
+                           DashboardService dashboardService) {
         this.produtoService = produtoService;
         this.pedidoService = pedidoService;
         this.dashboardService = dashboardService;
     }
-
-    // ... (métodos home, pedidos, cardapio, relatorios, e de Produto continuam iguais) ...
+    
     @GetMapping("/")
     public String home(Model model) {
         model.addAttribute("stats", dashboardService.getDashboardStats());
@@ -70,12 +68,14 @@ public class PagesController {
         pedidoService.atualizarStatus(id, status);
         return "redirect:/pedidos";
     }
+
     @GetMapping("/produtos/novo")
     public String mostrarFormNovoProduto(Model model) {
-        ProdutoDTO dto = new ProdutoDTO(null, "", "", BigDecimal.ZERO, 0, true);
+        ProdutoDTO dto = new ProdutoDTO(null, "", BigDecimal.ZERO, true);
         model.addAttribute("produto", dto);
         return "form-produto";
     }
+    
     @GetMapping("/produtos/editar/{id}")
     public String mostrarFormEditarProduto(@PathVariable Long id, Model model) {
         model.addAttribute("produto", produtoService.buscarDTO(id));
@@ -95,47 +95,21 @@ public class PagesController {
         return "redirect:/cardapio";
     }
 
-
-    // --- FLUXO ÚNICO DE CRIAÇÃO DE PEDIDO ---
-
-    /**
-     * 3. RENOMEADO (era /pedidos/novo-balcao)
-     * Mostra o formulário simples para Pedido (só 1 campo).
-     */
     @GetMapping("/pedidos/novo")
     public String mostrarFormNovoPedido() {
-        // 4. RENOMEADO (era form-pedido-balcao)
         return "form-pedido"; 
     }
-
-    /**
-     * 5. RENOMEADO (era /pedidos/criar-balcao)
-     * Recebe o nome/observação do formulário.
-     */
     @PostMapping("/pedidos/criar")
     public String criarPedido(@RequestParam String nomeObservacao) {
-        // Validação simples
         if(nomeObservacao == null || nomeObservacao.trim().isEmpty()) {
-            nomeObservacao = "Pedido Balcão"; // Valor padrão
+            nomeObservacao = "Pedido Balcão";
         }
-        
-        // 6. RENOMEADO (era criarPedidoBalcao)
         Pedido pedidoSalvo = pedidoService.criarNovoPedido(nomeObservacao);
-        
-        // Redireciona para a Etapa 2 (Editar Itens)
         return "redirect:/pedidos/editar/" + pedidoSalvo.getId();
     }
-
-    // --- (Fluxo de Edição de Pedido continua igual) ---
-    
     @GetMapping("/pedidos/editar/{id}")
     public String mostrarFormEditarPedido(@PathVariable Long id, Model model) {
-        
-        // --- ALTERAÇÃO AQUI ---
-        // Trocamos 'buscar(id)' pelo novo método 'buscarCompletoParaEdicao(id)'
         model.addAttribute("pedido", pedidoService.buscarCompletoParaEdicao(id));
-        // --- FIM DA ALTERAÇÃO ---
-
         model.addAttribute("produtos", produtoService.listarProdutos());
         return "form-editar-pedido";
     }

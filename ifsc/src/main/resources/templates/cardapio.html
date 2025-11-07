@@ -10,7 +10,7 @@
       <div class="menu-img skeleton"></div>
       <div class="menu-body">
         <div class="menu-title" th:text="${p.nome}">Nome</div>
-        <div class="menu-sub" th:text="${p.descricao}">Descrição</div>
+        
         <div class="menu-foot">
           <span class="price" th:text="${'R$ ' + #numbers.formatDecimal(p.preco,1,'POINT',2,'COMMA')}">R$ 0,00</span>
           
