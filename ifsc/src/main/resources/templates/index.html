@@ -3,13 +3,13 @@
       th:replace="~{_layout :: layout(${'Home • Sudarê Sushi'}, 'home', ~{::content})}">
 
 <section th:fragment="content">
-    
+
     <div class="form-row">
         <a class="btn" th:href="@{/pedidos/novo}">Abrir Novo Pedido</a>
     </div>
 
     <h2 class="section-title mt-22">Últimos pedidos</h2>
-    
+
     <div class="table-wrap">
         <table class="table">
             <thead>
@@ -20,35 +20,91 @@
                     <th>Valor</th>
                     <th>Status</th>
                     <th>Atualizado</th>
-                    <th>Ações</th> 
+                    <th>Ações</th>
                 </tr>
             </thead>
             <tbody>
                 <tr th:each="p : ${ultimosPedidos}">
-                    <td th:text="${p.id}">0</td>
-                    <td th:text="${p.cliente.nome}">Cliente</td>
-                    <td th:text="${#lists.size(p.itens)}">0</td>
-                    <td th:text="${'R$ ' + #numbers.formatDecimal(p.total,1,'POINT',2,'COMMA')}">R$ 0,00</td>
-                    <td>
-                        <span class="badge"
-                              th:classappend="${p.status.name()=='EM_PREPARO'}? ' badge-warning' : (${p.status.name()=='CONCLUIDO'}? ' badge-success':'')"
-                              th:text="${p.status}">STATUS</span>
-                    </td>
-                    <td th:text="${#temporals.format(p.criadoEm, 'dd/MM HH:mm')}">agora</td>
-                    
-                    <td>
-                        <a th:href="@{/pedidos/editar/{id}(id=${p.id})}" class="btn btn-sm">
-                            Editar
-                        </a>
-                    </td>
+
+                    <th:block th:if="${statusEditId != null AND p.id == statusEditId}">
+                        <td style="vertical-align: middle;" th:text="${p.id}">#</td>
+                        <td style="vertical-align: middle;" th:text="${p.cliente.nome}">Cliente</td>
+                        <td style="vertical-align: middle;" th:text="${#lists.size(p.itens)}">0</td>
+                        <td style="vertical-align: middle;"
+                            th:text="${'R$ ' + #numbers.formatDecimal(p.total,1,'POINT',2,'COMMA')}">R$ 0,00</td>
+
+                        <td colspan="3" style="vertical-align: middle;">
+                            <form th:action="@{/pedidos/atualizar-status}" method="POST"
+                                  style="display: flex; align-items: center; gap: 6px;">
+                                <input type="hidden" name="id" th:value="${p.id}" />
+
+                                <select name="status" class="form-control"
+                                        style="height: 34px; padding: 0 10px; min-width: 140px;">
+                                    
+                                    <option value="ABERTO"     th:selected="${p.status.name() == 'ABERTO'}">Aberto</option>
+                                    <option value="EM_PREPARO" th:selected="${p.status.name() == 'EM_PREPARO'}">Em Preparo</option>
+                                    <option value="PRONTO"     th:selected="${p.status.name() == 'PRONTO'}">Pronto</option>
+                                    <option value="ENTREGUE"   th:selected="${p.status.name() == 'ENTREGUE'}">Entregue</option>
+                                    <option value="FINALIZADO" th:selected="${p.status.name() == 'FINALIZADO'}">Finalizado</option>
+                                    <option value="CANCELADO"  th:selected="${p.status.name() == 'CANCELADO'}">Cancelado</option>
+                                
+                                </select>
+                                <span style="color: var(--muted); margin-left: 10px; white-space: nowrap;"
+                                      th:text="${#temporals.format(p.criadoEm, 'dd/MM HH:mm')}">
+                                </span>
+
+                                <button type="submit" class="btn btn-sm" style="margin-left: auto;">Salvar</button>
+                                <a th:href="@{/}" class="btn btn-sm btn-ghost">Cancelar</a>
+                            </form>
+                        </td>
+                    </th:block>
+
+                    <th:block th:unless="${statusEditId != null AND p.id == statusEditId}">
+                        <td th:text="${p.id}">#</td>
+                        <td th:text="${p.cliente.nome}">Cliente</td>
+                        <td th:text="${#lists.size(p.itens)}">0</td>
+                        <td th:text="${'R$ ' + #numbers.formatDecimal(p.total,1,'POINT',2,'COMMA')}">R$ 0,00</td>
+
+                        <td>
+                            <th:block th:switch="${p.status.name()}">
+                                <span th:case="'EM_PREPARO'" class="badge badge-warning" th:text="${p.status}"></span>
+                                <span th:case="'PRONTO'" class="badge badge-info" th:text="${p.status}"></span>
+                                <span th:case="'ENTREGUE'" class="badge badge-primary" th:text="${p.status}"></span>
+                                <span th:case="'FINALIZADO'" class="badge badge-success" th:text="${p.status}"></span>
+                                <span th:case="'CONCLUIDO'" class="badge badge-success" th:text="${p.status}"></span>
+                                <span th:case="'CANCELADO'" class="badge badge-danger" th:text="${p.status}"></span>
+                                <span th:case="*" class="badge" th:text="${p.status}"></span> </th:block>
+                        </td>
+                        
+                        <td th:text="${#temporals.format(p.criadoEm, 'dd/MM HH:mm')}">agora</td>
+
+                        <td style="white-space: nowrap;">
+                            <a th:href="@{/pedidos/editar/{id}(id=${p.id})}" class="btn btn-sm">
+                                Editar Itens
+                            </a>
+                            
+                            <a th:if="${p.status.name() != 'FINALIZADO' AND p.status.name() != 'CANCELADO' AND p.status.name() != 'CONCLUIDO'}"
+                               th:href="@{/(statusEditId=${p.id})}" class="btn btn-sm btn-ghost">
+                                Alterar Status
+                            </a>
+                        </td>
+                    </th:block>
                 </tr>
-                
+
                 <tr th:if="${#lists.isEmpty(ultimosPedidos)}">
-                    <td colspan="7" style="text-align: center;">Sem pedidos recentes.</td>
+                    <td colspan="7" style="text-align: center; color: var(--muted);">
+                        Sem pedidos recentes.
+                    </td>
                 </tr>
             </tbody>
         </table>
     </div>
+    
+    <style>
+      .badge-info { background-color: #007bff; /* Azul */ }
+      .badge-primary { background-color: #6f42c1; /* Roxo */ }
+    </style>
 
-    </section>
+</section>
+
 </html>

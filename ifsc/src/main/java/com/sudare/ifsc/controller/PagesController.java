@@ -35,12 +35,14 @@ public class PagesController {
     
     // MUDANÇA 1: Adicionado "/index" para corrigir o 404
     @GetMapping({"/", "/index"})
-    public String home(Model model) {
+    public String home(Model model, @RequestParam(name = "statusEditId", required = false) Long statusEditId) {
         model.addAttribute("stats", dashboardService.getDashboardStats());
         model.addAttribute("ultimosPedidos", pedidoService.buscarUltimosPedidos(5));
         
         // MUDANÇA 2: Adicionada a "fila" à página principal (como na sua imagem)
         model.addAttribute("fila", pedidoService.buscarFilaPreparo());
+
+        model.addAttribute("statusEditId", statusEditId);
         
         return "index"; // Este HTML deve conter as 2 tabelas
     }
