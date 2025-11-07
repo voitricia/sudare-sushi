@@ -115,59 +115,61 @@
   </div>
 
   <style>
-    .form-group label { display: block; margin-bottom: 4px; font-weight: 600; }
-    .form-control {
-      background: #2d2d2d; color: #DDDDDD; border: 1px solid #555555;
-      border-radius: 8px; padding: 10px 12px; width: 100%;
-    }
-    .form-control:focus { border-color: #E53E3E; outline: none; }
-
-    /* Estilos Tom Select (Dark Mode) */
+    /* Estilos Tom Select (para combinar com o .form-control do tema claro) */
     .ts-control {
-      background: #2d2d2d !important; color: #DDDDDD !important;
-      border: 1px solid #555555 !important; border-radius: 8px !important;
-      padding: 10px 12px !important; height: 48px; 
+      background: var(--panel) !important;
+      color: var(--text) !important;
+      border: 1px solid var(--stroke) !important;
+      border-radius: 8px !important;
+      padding: 10px 12px !important;
+      height: 48px; 
     }
     .ts-control.focus {
-      border-color: #E53E3E !important; box-shadow: none !important;
+      border-color: var(--brand) !important; 
+      box-shadow: 0 0 0 3px rgba(229, 62, 62, 0.1) !important;
+      outline: none !important;
     }
     .ts-dropdown {
-      background: #2d2d2d !important; border: 1px solid #555555 !important;
+      background: var(--panel) !important; 
+      border: 1px solid var(--stroke) !important;
       border-radius: 8px !important;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.05);
     }
     .ts-option {
-      color: #DDDDDD !important; padding: 10px 12px !important;
+      color: var(--text) !important; 
+      padding: 10px 12px !important;
     }
     .ts-option.active, .ts-option:hover {
-      background: #E53E3E !important; color: white !important;
+      background: var(--brand) !important; 
+      color: var(--brand-text) !important;
     }
-    .ts-control .item, .ts-control input::placeholder {
-       color: #DDDDDD !important;
+    .ts-control .item {
+       color: var(--text) !important;
     }
-    /* Placeholder do Tom Select (quando vazio) */
-    .ts-control input::placeholder { color: #888888 !important; }
-    .ts-control .item[data-value=""] { display: none; } /* Esconde o placeholder quando selecionado */
+    /* Placeholder (ex: "Digite ou selecione...") */
+    .ts-control input::placeholder { 
+      color: var(--muted) !important; 
+    }
 
+    /* Estilo para o campo de busca DENTRO do dropdown */
     .ts-dropdown .ts-input {
-      background: #3a3a3a !important; /* Fundo do input de busca */
-      color: #DDDDDD !important;
-      border: 1px solid #555555 !important;
+      background: var(--bg) !important; /* Fundo do input (cinza claro) */
+      color: var(--text) !important;
+      border: 1px solid var(--stroke) !important;
       border-radius: 4px;
       margin: 8px;
       width: calc(100% - 16px);
       padding: 8px 10px;
     }
     .ts-dropdown .ts-input:focus {
-      border-color: #E53E3E !important;
+      border-color: var(--brand) !important;
       outline: none;
     }
   </style>
-
-
   <script>
     document.addEventListener("DOMContentLoaded", () => {
       new TomSelect('#produtoId', {
-        plugins: ['dropdown_input'], // <-- Ativa a busca DENTRO do dropdown
+        plugins: ['dropdown_input'], // Ativa a busca DENTRO do dropdown
         create: false,
         sortField: {
           field: "text",
