@@ -19,6 +19,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 
 @Controller
 public class PagesController {
@@ -62,21 +63,47 @@ public class PagesController {
 
     @GetMapping("/relatorios")
     public String relatorios(Model model,
-                             // O 'defaultValue' garante que "hoje" seja o padrão
-                             @RequestParam(name = "periodo", defaultValue = "hoje") String periodo) {
+                             @RequestParam(name = "periodo", required = false) String periodo,
+                             @RequestParam(name = "dataInicio", required = false) String dataInicioStr,
+                             @RequestParam(name = "dataFim", required = false) String dataFimStr) {
         
-        // 1. Chama o serviço
-        RelatorioDTO relatorio = pedidoService.getRelatorio(periodo);
+        RelatorioDTO relatorio;
+        String periodoAtivo = "hoje"; // Default
+        LocalDate dataInicio = null;
+        LocalDate dataFim = null;
 
-        // 2. Adiciona os dados ao Model
+        if (periodo != null && !periodo.isEmpty()) {
+            // 1. Prioridade 1: Filtro rápido (Hoje, Semana, etc.)
+            periodoAtivo = periodo;
+            relatorio = pedidoService.getRelatorio(periodo);
+            
+        } else if (dataInicioStr != null && !dataInicioStr.isEmpty() && dataFimStr != null && !dataFimStr.isEmpty()) {
+            // 2. Prioridade 2: Filtro customizado por data
+            try {
+                dataInicio = LocalDate.parse(dataInicioStr);
+                dataFim = LocalDate.parse(dataFimStr);
+                relatorio = pedidoService.getRelatorio(dataInicio, dataFim);
+                periodoAtivo = "custom"; // Para não destacar botões
+            } catch (Exception e) {
+                // Em caso de data inválida, volta para o padrão "hoje"
+                relatorio = pedidoService.getRelatorio("hoje");
+            }
+            
+        } else {
+            // 3. Default (sem parâmetros)
+            relatorio = pedidoService.getRelatorio("hoje");
+        }
+
         model.addAttribute("relatorio", relatorio);
+        model.addAttribute("periodoAtivo", periodoAtivo);
         
-        // 3. Adiciona o período ativo (para o CSS do botão)
-        model.addAttribute("periodoAtivo", periodo);
+        // Passa as datas de volta para os inputs
+        model.addAttribute("dataInicio", dataInicio); 
+        model.addAttribute("dataFim", dataFim);
         
         return "relatorios";
     }
-
+    
     @PostMapping("/cardapio/atualizar-ativo")
     public String atualizarProdutoAtivo(@RequestParam Long id, @RequestParam boolean ativo) {
         produtoService.atualizarAtivo(id, ativo);

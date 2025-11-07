@@ -24,6 +24,22 @@
            th:classappend="${periodoAtivo == 'tudo'} ? 'is-active'">Tudo</a>
     </div>
 
+    <form th:action="@{/relatorios}" method="GET" class="form-row" style="margin-bottom: 25px;">
+        <div class="form-group" style="flex: 2;">
+            <label for="dataInicio">Data Início</label>
+            <input type="date" id="dataInicio" name="dataInicio" th:value="${dataInicio}" class="form-control" />
+        </div>
+        <div class="form-group" style="flex: 2;">
+            <label for="dataFim">Data Fim</label>
+            <input type="date" id="dataFim" name="dataFim" th:value="${dataFim}" class="form-control" />
+        </div>
+        <div class="form-group" style="flex: 1;">
+            <label>&nbsp;</label> 
+            <button type="submit" class="btn" style="width: 100%;">Filtrar</button>
+        </div>
+    </form>
+
+
     <div class="stats-grid">
         <div class="stat-card">
             <span>Faturamento Total</span>
@@ -32,10 +48,6 @@
         <div class="stat-card">
             <span>Número de Pedidos</span>
             <strong th:text="${relatorio.numeroDePedidos}">0</strong>
-        </div>
-        <div class="stat-card">
-            <span>Ticket Médio</span>
-            <strong th:text="${'R$ ' + #numbers.formatDecimal(relatorio.ticketMedio,1,'POINT',2,'COMMA')}">R$ 0,00</strong>
         </div>
     </div>
 

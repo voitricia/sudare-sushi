@@ -2,7 +2,7 @@ package com.sudare.ifsc.services;
 
 import com.sudare.ifsc.dtos.ItemPedidoDTO;
 import com.sudare.ifsc.dtos.PedidoDTO;
-import com.sudare.ifsc.dtos.RelatorioDTO; // Precisa existir
+import com.sudare.ifsc.dtos.RelatorioDTO;
 import com.sudare.ifsc.exceptions.NotFoundException;
 import com.sudare.ifsc.model.*;
 import com.sudare.ifsc.repositories.*;
@@ -14,13 +14,21 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+// === IMPORTS NOVOS ===
+import java.time.LocalDate;
+import java.time.LocalTime;
+import java.time.ZoneOffset;
+// =====================
 import java.time.OffsetDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
 
 @Service
 public class PedidoService {
-
+    
+    // ... (Seu construtor e todos os métodos de Pedido, Item, etc. continuam aqui) ...
+    // ... (listar, buscar, criar, atualizarStatus, buscarFilaPreparo, etc...) ...
+    
     private final PedidoRepository pedidoRepository;
     private final ClienteRepository clienteRepository;
     private final ProdutoRepository produtoRepository;
@@ -83,7 +91,10 @@ public class PedidoService {
     }
     @Transactional(readOnly = true)
     public List<Pedido> buscarUltimosPedidos(int limite) {
-        Pageable pageable = PageRequest.of(0, limite, Sort.by("criadoEm").descending());
+        Pageable pageable = Pageable.unpaged(); // Ajuste se precisar de paginação
+        if (limite > 0) {
+            pageable = PageRequest.of(0, limite, Sort.by("criadoEm").descending());
+        }
         return pedidoRepository.findAllWithCliente(pageable);
     }
 
@@ -157,6 +168,7 @@ public class PedidoService {
     }
 
     private void recalcularTotalPedido(Pedido pedido) {
+        // ... (seu método recalcularTotalPedido) ...
         BigDecimal total = BigDecimal.ZERO;
         
         if (pedido.getItens() == null || pedido.getItens().isEmpty()) {
@@ -180,17 +192,35 @@ public class PedidoService {
     }
 
     // ==========================================================
-    // === MÉTODOS DE RELATÓRIO (que você acabou de adicionar) ===
+    // === MÉTODOS DE RELATÓRIO ATUALIZADOS ===
     // ==========================================================
     
+    /**
+     * NOVO MÉTODO: Gera relatório por datas customizadas
+     */
+    @Transactional(readOnly = true)
+    public RelatorioDTO getRelatorio(LocalDate dataInicio, LocalDate dataFim) {
+        // Converte para OffsetDateTime (início do dia e fim do dia)
+        // Usando ZoneOffset.UTC para consistência. Mude para ZoneOffset.systemDefault() se preferir a zona do servidor.
+        OffsetDateTime inicio = dataInicio.atStartOfDay().atOffset(ZoneOffset.UTC);
+        OffsetDateTime fim = dataFim.atTime(LocalTime.MAX).atOffset(ZoneOffset.UTC);
+        
+        List<Pedido> pedidos = pedidoRepository.findPedidosPorStatusEData(StatusPedido.FINALIZADO, inicio, fim);
+        
+        return calcularStats(pedidos);
+    }
+    
+    /**
+     * MÉTODO ANTIGO: Agora usado para filtros rápidos (Hoje, Semana, etc.)
+     */
     @Transactional(readOnly = true)
     public RelatorioDTO getRelatorio(String periodo) {
-        OffsetDateTime fim = OffsetDateTime.now();
+        // Usando UTC para consistência. Mude para ZoneId.systemDefault() se preferir a zona do servidor.
+        OffsetDateTime fim = OffsetDateTime.now(ZoneOffset.UTC);
         OffsetDateTime inicio;
         
         List<Pedido> pedidos;
 
-        // 1. Define o intervalo de datas
         switch (periodo) {
             case "semana":
                 inicio = fim.minusDays(7).truncatedTo(ChronoUnit.DAYS);
@@ -200,7 +230,7 @@ public class PedidoService {
                 break;
             case "tudo":
                 pedidos = pedidoRepository.findAllPedidosPorStatus(StatusPedido.FINALIZADO);
-                return calcularStats(pedidos); // Calcula e retorna
+                return calcularStats(pedidos);
             
             case "hoje":
             default:
@@ -208,13 +238,13 @@ public class PedidoService {
                 break;
         }
 
-        // 2. Busca os pedidos
         pedidos = pedidoRepository.findPedidosPorStatusEData(StatusPedido.FINALIZADO, inicio, fim);
-        
-        // 3. Calcula os stats e retorna
         return calcularStats(pedidos);
     }
 
+    /**
+     * Método auxiliar (sem alterações)
+     */
     private RelatorioDTO calcularStats(List<Pedido> pedidos) {
         BigDecimal faturamento = pedidos.stream()
                                         .map(Pedido::getTotal)
@@ -222,11 +252,6 @@ public class PedidoService {
 
         Long numPedidos = (long) pedidos.size();
 
-        BigDecimal ticketMedio = BigDecimal.ZERO;
-        if (numPedidos > 0) {
-            ticketMedio = faturamento.divide(BigDecimal.valueOf(numPedidos), 2, RoundingMode.HALF_UP);
-        }
-
-        return new RelatorioDTO(faturamento, numPedidos, ticketMedio, pedidos);
+        return new RelatorioDTO(faturamento, numPedidos, pedidos);
     }
 }
