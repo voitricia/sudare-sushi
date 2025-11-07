@@ -1,6 +1,7 @@
 package com.sudare.ifsc.controller;
 
 import com.sudare.ifsc.dtos.ProdutoDTO;
+import com.sudare.ifsc.dtos.RelatorioDTO;
 import com.sudare.ifsc.model.Pedido;
 import com.sudare.ifsc.model.StatusPedido;
 // Remova a importação do DashboardService
@@ -61,11 +62,18 @@ public class PagesController {
 
     @GetMapping("/relatorios")
     public String relatorios(Model model,
-                             @RequestParam(required = false) String ini,
-                             @RequestParam(required = false) String fim) {
-        model.addAttribute("ini", ini);
-        model.addAttribute("fim", fim);
-        model.addAttribute("resumo", java.util.List.of());
+                             // O 'defaultValue' garante que "hoje" seja o padrão
+                             @RequestParam(name = "periodo", defaultValue = "hoje") String periodo) {
+        
+        // 1. Chama o serviço
+        RelatorioDTO relatorio = pedidoService.getRelatorio(periodo);
+
+        // 2. Adiciona os dados ao Model
+        model.addAttribute("relatorio", relatorio);
+        
+        // 3. Adiciona o período ativo (para o CSS do botão)
+        model.addAttribute("periodoAtivo", periodo);
+        
         return "relatorios";
     }
 

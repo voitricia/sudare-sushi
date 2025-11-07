@@ -2,6 +2,7 @@ package com.sudare.ifsc.services;
 
 import com.sudare.ifsc.dtos.ItemPedidoDTO;
 import com.sudare.ifsc.dtos.PedidoDTO;
+import com.sudare.ifsc.dtos.RelatorioDTO; // Precisa existir
 import com.sudare.ifsc.exceptions.NotFoundException;
 import com.sudare.ifsc.model.*;
 import com.sudare.ifsc.repositories.*;
@@ -12,10 +13,14 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
+import java.time.OffsetDateTime;
+import java.time.temporal.ChronoUnit;
 import java.util.List;
 
 @Service
 public class PedidoService {
+
     private final PedidoRepository pedidoRepository;
     private final ClienteRepository clienteRepository;
     private final ProdutoRepository produtoRepository;
@@ -44,16 +49,12 @@ public class PedidoService {
             .orElseThrow(() -> new NotFoundException("Pedido não encontrado"));
     }
 
-    // ==========================================================
-    // === MÉTODO QUE FALTAVA (PARA O PedidoController DA API) ===
-    // ==========================================================
     @Transactional
     public Pedido criar(PedidoDTO dto){
         Cliente cliente = clienteRepository.findById(dto.clienteId()).orElseThrow(() -> new NotFoundException("Cliente não encontrado"));
         Pedido pedido = new Pedido();
         pedido.setCliente(cliente);
         
-        // (Este DTO precisa ter uma lista de itens)
         if (dto.itens() != null) {
             for(ItemPedidoDTO itemDto : dto.itens()){
                 Produto produto = produtoRepository.findById(itemDto.produtoId()).orElseThrow(() -> new NotFoundException("Produto não encontrado: ID " + itemDto.produtoId()));
@@ -64,10 +65,9 @@ public class PedidoService {
                 pedido.adicionarItem(item);
             }
         }
-        recalcularTotalPedido(pedido); // Garante que o total seja calculado
+        recalcularTotalPedido(pedido);
         return pedidoRepository.save(pedido);
     }
-    // ==========================================================
 
     @Transactional
     public Pedido atualizarStatus(Long id, StatusPedido status){
@@ -87,9 +87,6 @@ public class PedidoService {
         return pedidoRepository.findAllWithCliente(pageable);
     }
 
-    /**
-     * Este método é usado pelo PagesController (o formulário web)
-     */
     @Transactional
     public Pedido criarNovoPedido(String nomeObservacao) {
         Cliente clientePadrao = clienteRepository.findByNome("Consumidor Final")
@@ -141,9 +138,6 @@ public class PedidoService {
         return pedido;
     }
 
-    /**
-     * Este método é usado pelo PagesController (edição de item na linha)
-     */
     @Transactional
     public void atualizarItemQuantidade(Long itemPedidoId, Integer quantidade) {
         if (quantidade < 1) {
@@ -165,14 +159,11 @@ public class PedidoService {
     private void recalcularTotalPedido(Pedido pedido) {
         BigDecimal total = BigDecimal.ZERO;
         
-        // Se o pedido foi salvo agora, pode não ter itens carregados
         if (pedido.getItens() == null || pedido.getItens().isEmpty()) {
-             // Se não tiver itens (ex: na criação do DTO), o total é zero
              if (pedido.getId() == null) {
                  pedido.setTotal(BigDecimal.ZERO);
                  return;
              }
-             // Se já existe, recarrega
              Pedido pedidoComItens = buscarCompletoParaEdicao(pedido.getId());
              for (ItemPedido i : pedidoComItens.getItens()) {
                  total = total.add(i.getSubtotal());
@@ -180,12 +171,62 @@ public class PedidoService {
              pedidoComItens.setTotal(total);
              pedidoRepository.save(pedidoComItens);
         } else {
-             // Se os itens já estão carregados
              for (ItemPedido i : pedido.getItens()) {
                  total = total.add(i.getSubtotal());
              }
              pedido.setTotal(total);
              pedidoRepository.save(pedido);
         }
+    }
+
+    // ==========================================================
+    // === MÉTODOS DE RELATÓRIO (que você acabou de adicionar) ===
+    // ==========================================================
+    
+    @Transactional(readOnly = true)
+    public RelatorioDTO getRelatorio(String periodo) {
+        OffsetDateTime fim = OffsetDateTime.now();
+        OffsetDateTime inicio;
+        
+        List<Pedido> pedidos;
+
+        // 1. Define o intervalo de datas
+        switch (periodo) {
+            case "semana":
+                inicio = fim.minusDays(7).truncatedTo(ChronoUnit.DAYS);
+                break;
+            case "mes":
+                inicio = fim.withDayOfMonth(1).truncatedTo(ChronoUnit.DAYS);
+                break;
+            case "tudo":
+                pedidos = pedidoRepository.findAllPedidosPorStatus(StatusPedido.FINALIZADO);
+                return calcularStats(pedidos); // Calcula e retorna
+            
+            case "hoje":
+            default:
+                inicio = fim.truncatedTo(ChronoUnit.DAYS);
+                break;
+        }
+
+        // 2. Busca os pedidos
+        pedidos = pedidoRepository.findPedidosPorStatusEData(StatusPedido.FINALIZADO, inicio, fim);
+        
+        // 3. Calcula os stats e retorna
+        return calcularStats(pedidos);
+    }
+
+    private RelatorioDTO calcularStats(List<Pedido> pedidos) {
+        BigDecimal faturamento = pedidos.stream()
+                                        .map(Pedido::getTotal)
+                                        .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+        Long numPedidos = (long) pedidos.size();
+
+        BigDecimal ticketMedio = BigDecimal.ZERO;
+        if (numPedidos > 0) {
+            ticketMedio = faturamento.divide(BigDecimal.valueOf(numPedidos), 2, RoundingMode.HALF_UP);
+        }
+
+        return new RelatorioDTO(faturamento, numPedidos, ticketMedio, pedidos);
     }
 }
