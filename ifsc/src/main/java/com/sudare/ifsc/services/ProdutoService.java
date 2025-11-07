@@ -24,13 +24,10 @@ public class ProdutoService {
         return produtoRepository.findById(id).orElseThrow(() -> new NotFoundException("Produto não encontrado"));
     }
 
-    // CORRIGIDO: Recebe ProdutoDTO e mapeia para a entidade
     public Produto criar (ProdutoDTO dto) {
         Produto p = new Produto();
         p.setNome(dto.nome());
-        p.setDescricao(dto.descricao());
         p.setPreco(dto.preco());
-        p.setEstoque(dto.estoque());
         p.setAtivo(dto.ativo());
         return produtoRepository.save(p);
     }
@@ -38,9 +35,7 @@ public class ProdutoService {
     public Produto atualizar(Long id, ProdutoDTO dto) {
         Produto produto = buscar(id);
         produto.setNome(dto.nome());
-        produto.setDescricao(dto.descricao());
         produto.setPreco(dto.preco());
-        produto.setEstoque(dto.estoque());
         produto.setAtivo(dto.ativo());
         return produtoRepository.save(produto);
     }
@@ -55,16 +50,14 @@ public class ProdutoService {
         return new ProdutoDTO(
                 p.getId(),
                 p.getNome(),
-                p.getDescricao(),
                 p.getPreco(),
-                p.getEstoque(),
                 p.isAtivo()
         );
     }
 
     @Transactional
     public Produto atualizarAtivo(Long id, boolean ativo) {
-        Produto produto = buscar(id); // Reutiliza seu método 'buscar'
+        Produto produto = buscar(id);
         produto.setAtivo(ativo);
         return produtoRepository.save(produto);
     }
