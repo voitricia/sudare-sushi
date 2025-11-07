@@ -115,6 +115,41 @@ body {
   border-color: var(--stroke);
 }
 
+/* ======================================= */
+/* === ADICIONADO: Botões Ghost Coloridos === */
+/* ======================================= */
+.btn-ghost-danger {
+  background-color: transparent;
+  color: var(--danger);
+  border: 1px solid var(--danger);
+  padding: 7px 12px;
+  font-size: 0.85em;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.btn-ghost-danger:hover {
+  background-color: rgba(220, 38, 38, 0.1); /* Fundo vermelho leve */
+}
+
+.btn-ghost-success {
+  background-color: transparent;
+  color: var(--success);
+  border: 1px solid var(--success);
+  padding: 7px 12px;
+  font-size: 0.85em;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.btn-ghost-success:hover {
+  background-color: rgba(16, 185, 129, 0.1); /* Fundo verde leve */
+}
+/* ======================================= */
+/* === FIM DAS ADIÇÕES === */
+/* ======================================= */
+
+
 /* --- Formulários --- */
 .form-group { margin-bottom: 15px; }
 .form-group label { 
