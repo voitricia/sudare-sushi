@@ -25,27 +25,19 @@ public class DashboardService {
         this.itemPedidoRepository = itemPedidoRepository;
     }
 
-    /**
-     * Busca e calcula todas as estatísticas para o dashboard da Home.
-     */
     @Transactional(readOnly = true)
     public StatsDTO getDashboardStats() {
-        // Define o início do "dia de hoje" (meia-noite)
         OffsetDateTime inicioDoDia = OffsetDateTime.now().truncatedTo(ChronoUnit.DAYS);
 
-        // 1. Pedidos Hoje (COUNT)
         Long pedidosHoje = pedidoRepository.countByCriadoEmAfter(inicioDoDia);
 
-        // 2. Faturamento (SUM)
         BigDecimal faturamento = pedidoRepository.sumTotalByCriadoEmAfter(inicioDoDia);
 
-        // 3. Em Preparo (COUNT por Status)
         Long emPreparo = pedidoRepository.countByStatus(StatusPedido.EM_PREPARO);
 
-        // 4. Item Top (GROUP BY e LIMIT 1)
         List<ItemTopDTO> topItems = itemPedidoRepository.findTopSellingItems(inicioDoDia, PageRequest.of(0, 1));
         
-        String itemTopNome = "–"; // Valor padrão (hífen)
+        String itemTopNome = "–"; 
         Long itemTopQtd = 0L;
         
         if (!topItems.isEmpty()) {
@@ -53,7 +45,6 @@ public class DashboardService {
             itemTopQtd = topItems.get(0).quantidade();
         }
 
-        // 5. Monta o DTO final e retorna
         return new StatsDTO(pedidosHoje, faturamento, emPreparo, itemTopNome, itemTopQtd);
     }
 }

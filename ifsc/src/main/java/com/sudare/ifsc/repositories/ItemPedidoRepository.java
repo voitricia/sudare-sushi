@@ -1,21 +1,16 @@
 package com.sudare.ifsc.repositories;
 
-import com.sudare.ifsc.dtos.ItemTopDTO; // Importar
+import com.sudare.ifsc.dtos.ItemTopDTO; 
 import com.sudare.ifsc.model.ItemPedido;
-import org.springframework.data.domain.Pageable; // Importar
+import org.springframework.data.domain.Pageable; 
 import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.data.jpa.repository.Query; // Importar
-import org.springframework.data.repository.query.Param; // Importar
-
-import java.time.OffsetDateTime; // Importar
-import java.util.List; // Importar
+import org.springframework.data.jpa.repository.Query; 
+import org.springframework.data.repository.query.Param; 
+import java.time.OffsetDateTime;
+import java.util.List; 
 
 public interface ItemPedidoRepository extends JpaRepository<ItemPedido, Long> {
 
-    /**
-     * Busca o item mais vendido (SUM(quantidade)) de hoje.
-     * Agrupa por produto, ordena pela soma e retorna o DTO (ItemTopDTO).
-     */
     @Query("SELECT new com.sudare.ifsc.dtos.ItemTopDTO(i.produto.nome, SUM(i.quantidade)) " +
            "FROM ItemPedido i JOIN i.pedido p " +
            "WHERE p.criadoEm >= :inicioDoDia " +
