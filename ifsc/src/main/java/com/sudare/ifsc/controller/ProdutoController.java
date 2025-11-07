@@ -9,7 +9,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/produtos") // CORRIGIDO: Rota padronizada
+@RequestMapping("/api/produtos") 
 public class ProdutoController {
     private final ProdutoService produtoService;
     public ProdutoController(ProdutoService produtoService){
@@ -28,7 +28,6 @@ public class ProdutoController {
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    // CORRIGIDO: Recebe ProdutoDTO, não a entidade Produto
     public Produto criar(@RequestBody @Validated ProdutoDTO dto){
         return produtoService.criar(dto);
     }

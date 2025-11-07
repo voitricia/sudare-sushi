@@ -30,25 +30,21 @@ public class Pedido {
         this.total = itens.stream().map(ItemPedido::getSubtotal)
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
     }
-    // (Dentro da classe Pedido)
     public void adicionarItem(ItemPedido item) {
         if (item != null) {
             this.itens.add(item);
-            item.setPedido(this); // Garante o link bidirecional
+            item.setPedido(this); 
         }
-        recalcTotal(); // Recalcula o total
+        recalcTotal(); 
     }
     
-    /**
-     * NOVO MÉTODO HELPER
-     * Remove um item da lista e recalcula o total.
-     */
+
     public void removerItem(ItemPedido item) {
         if (item != null) {
             this.itens.remove(item);
-            item.setPedido(null); // Quebra o link (essencial para orphanRemoval=true)
+            item.setPedido(null); 
         }
-        recalcTotal(); // Recalcula o total
+        recalcTotal();
     }
 
     private String nomeClienteObservacao;
