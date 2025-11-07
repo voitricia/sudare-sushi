@@ -2,6 +2,9 @@
 <html lang="pt-br" xmlns:th="http://www.thymeleaf.org"
       th:replace="~{_layout :: layout(${'Home • Sudarê Sushi'}, 'home', ~{::content})}">
 <section th:fragment="content">
+    <div class="form-row">
+    <a class="btn" th:href="@{/pedidos/novo}">Abrir Novo Pedidoa</a>
+  </div>
   <h2 class="section-title mt-22">Últimos pedidos</h2>
   <div class="table-wrap">
     <table class="table">
@@ -17,6 +20,37 @@
           <td th:text="${#temporals.format(p.criadoEm, 'dd/MM HH:mm')}">agora</td> 
         </tr>
         <tr th:if="${#lists.isEmpty(ultimosPedidos)}"><td colspan="6">Sem pedidos recentes.</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+    <h3 id="fila" class="section-subtitle">Fila de preparo</h3>
+  <div class="table-wrap">
+    <table class="table">
+      <thead><tr><th>#</th><th>Cliente</th><th>Itens</th><th>Valor</th><th>Status</th><th>Ações</th></tr></thead>
+      <tbody>
+        <tr th:each="p : ${fila}">
+          <td th:text="${p.id}">0</td>
+          <td th:text="${p.cliente.nome}">Cliente</td>
+          <td th:text="${#lists.size(p.itens)}">0</td>
+          <td th:text="${'R$ ' + #numbers.formatDecimal(p.total,1,'POINT',2,'COMMA')}">R$ 0,00</td>
+          <td><span class="badge badge-warning" th:text="${p.status}">EM_PREPARO</span></td>
+          
+          <td>
+            <form th:action="@{/pedidos/atualizar-status}" method="POST" style="display: inline;">
+              <input type="hidden" name="id" th:value="${p.id}" />
+              <input type="hidden" name="status" value="PRONTO" />
+              <button type="submit" class="btn btn-sm">Finalizar</button>
+            </form>
+
+            <form th:action="@{/pedidos/atualizar-status}" method="POST" style="display: inline;">
+              <input type="hidden" name="id" th:value="${p.id}" />
+              <input type="hidden" name="status" value="CANCELADO" />
+              <button type="submit" class="btn btn-sm btn-ghost">Cancelar</button>
+            </form>
+          </td>
+          </tr>
+        <tr th:if="${#lists.isEmpty(fila)}"><td colspan="6">Sem pedidos em preparo.</td></tr>
       </tbody>
     </table>
   </div>
