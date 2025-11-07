@@ -44,21 +44,31 @@ public class PedidoService {
             .orElseThrow(() -> new NotFoundException("Pedido não encontrado"));
     }
 
+    // ==========================================================
+    // === MÉTODO QUE FALTAVA (PARA O PedidoController DA API) ===
+    // ==========================================================
     @Transactional
     public Pedido criar(PedidoDTO dto){
         Cliente cliente = clienteRepository.findById(dto.clienteId()).orElseThrow(() -> new NotFoundException("Cliente não encontrado"));
         Pedido pedido = new Pedido();
         pedido.setCliente(cliente);
-        for(ItemPedidoDTO itemDto : dto.itens()){
-            Produto produto = produtoRepository.findById(itemDto.produtoId()).orElseThrow(() -> new NotFoundException("Produto não encontrado: ID " + itemDto.produtoId()));
-            ItemPedido item = new ItemPedido();
-            item.setProduto(produto);
-            item.setQuantidade(itemDto.quantidade());
-            item.setPrecoUnitario(itemDto.precoUnitario()); 
-            pedido.adicionarItem(item);
+        
+        // (Este DTO precisa ter uma lista de itens)
+        if (dto.itens() != null) {
+            for(ItemPedidoDTO itemDto : dto.itens()){
+                Produto produto = produtoRepository.findById(itemDto.produtoId()).orElseThrow(() -> new NotFoundException("Produto não encontrado: ID " + itemDto.produtoId()));
+                ItemPedido item = new ItemPedido();
+                item.setProduto(produto);
+                item.setQuantidade(itemDto.quantidade());
+                item.setPrecoUnitario(itemDto.precoUnitario()); 
+                pedido.adicionarItem(item);
+            }
         }
+        recalcularTotalPedido(pedido); // Garante que o total seja calculado
         return pedidoRepository.save(pedido);
     }
+    // ==========================================================
+
     @Transactional
     public Pedido atualizarStatus(Long id, StatusPedido status){
         Pedido p = buscar(id);
@@ -67,26 +77,27 @@ public class PedidoService {
     }
     @Transactional(readOnly = true)
     public List<Pedido> buscarFilaPreparo() {
-        return pedidoRepository.findAllByStatusWithCliente(StatusPedido.EM_PREPARO);
+        return pedidoRepository.findAllByStatusInWithCliente(
+            List.of(StatusPedido.EM_PREPARO, StatusPedido.PRONTO)
+        );
     }
     @Transactional(readOnly = true)
     public List<Pedido> buscarUltimosPedidos(int limite) {
         Pageable pageable = PageRequest.of(0, limite, Sort.by("criadoEm").descending());
         return pedidoRepository.findAllWithCliente(pageable);
     }
-    
-    
 
+    /**
+     * Este método é usado pelo PagesController (o formulário web)
+     */
     @Transactional
     public Pedido criarNovoPedido(String nomeObservacao) {
-        // Busca o cliente padrão.
         Cliente clientePadrao = clienteRepository.findByNome("Consumidor Final")
                 .orElseThrow(() -> new RuntimeException("Cliente 'Consumidor Final' não encontrado."));
 
-        // Cria o pedido
         Pedido pedido = new Pedido();
-        pedido.setCliente(clientePadrao); // Associa ao cliente padrão
-        pedido.setNomeClienteObservacao(nomeObservacao); // Salva a observação
+        pedido.setCliente(clientePadrao);
+        pedido.setNomeClienteObservacao(nomeObservacao);
         pedido.setStatus(StatusPedido.ABERTO);
         pedido.setTotal(BigDecimal.ZERO);
 
@@ -95,69 +106,86 @@ public class PedidoService {
     
     @Transactional
     public Pedido adicionarItemAoPedido(Long pedidoId, Long produtoId, Integer quantidade) {
-        Pedido pedido = buscar(pedidoId);
+        Pedido pedido = buscarCompletoParaEdicao(pedidoId);
         Produto produto = produtoRepository.findById(produtoId)
                 .orElseThrow(() -> new NotFoundException("Produto não encontrado"));
+        
+        for (ItemPedido itemExistente : pedido.getItens()) {
+            if (itemExistente.getProduto().getId().equals(produtoId)) {
+                itemExistente.setQuantidade(itemExistente.getQuantidade() + quantidade);
+                recalcularTotalPedido(pedido);
+                return pedido;
+            }
+        }
+
         ItemPedido item = new ItemPedido();
         item.setProduto(produto);
         item.setQuantidade(quantidade);
         item.setPrecoUnitario(produto.getPreco());
+        pedido.adicionarItem(item);
         
-        pedido.adicionarItem(item); // O total é (ou deveria ser) atualizado aqui
-        
-        // Vamos garantir que o total seja recalculado e salvo
         recalcularTotalPedido(pedido);
-        return pedido; // O save é feito pelo recalcularTotalPedido
+        return pedido; 
     }
 
     @Transactional
     public Pedido removerItemDoPedido(Long pedidoId, Long itemPedidoId) {
-        Pedido pedido = buscar(pedidoId);
+        Pedido pedido = buscarCompletoParaEdicao(pedidoId);
         ItemPedido item = itemPedidoRepository.findById(itemPedidoId)
                 .orElseThrow(() -> new NotFoundException("Item de pedido não encontrado"));
         
-        pedido.removerItem(item); // O total é (ou deveria ser) atualizado aqui
-        itemPedidoRepository.delete(item); // Remove o item
+        pedido.removerItem(item);
+        itemPedidoRepository.delete(item); 
         
-        // Vamos garantir que o total seja recalculado e salvo
         recalcularTotalPedido(pedido);
-        return pedido; // O save é feito pelo recalcularTotalPedido
+        return pedido;
     }
 
-    // ==========================================================
-    // === MÉTODO NOVO QUE O PAGESCONTROLLER PRECISA ===
-    // ==========================================================
-    
     /**
-     * Atualiza a quantidade de um item de pedido e recalcula o total.
+     * Este método é usado pelo PagesController (edição de item na linha)
      */
     @Transactional
     public void atualizarItemQuantidade(Long itemPedidoId, Integer quantidade) {
+        if (quantidade < 1) {
+             ItemPedido item = itemPedidoRepository.findById(itemPedidoId)
+                .orElseThrow(() -> new NotFoundException("Item de pedido não encontrado"));
+             removerItemDoPedido(item.getPedido().getId(), itemPedidoId);
+             return;
+        }
+
         ItemPedido item = itemPedidoRepository.findById(itemPedidoId)
                 .orElseThrow(() -> new NotFoundException("Item de pedido não encontrado"));
 
-        // 1. Atualiza a quantidade do item
         item.setQuantidade(quantidade);
         itemPedidoRepository.save(item);
 
-        // 2. Pega o pedido pai e recalcula o total
-        Pedido pedido = item.getPedido();
-        recalcularTotalPedido(pedido);
+        recalcularTotalPedido(item.getPedido());
     }
 
-    /**
-     * Método auxiliar para recalcular o total do pedido
-     * (É crucial que ItemPedido.getSubtotal() esteja funcionando)
-     */
     private void recalcularTotalPedido(Pedido pedido) {
-        // Recarrega o pedido com os itens para garantir
-        Pedido pedidoComItens = buscarCompletoParaEdicao(pedido.getId());
-        
         BigDecimal total = BigDecimal.ZERO;
-        for (ItemPedido i : pedidoComItens.getItens()) {
-            total = total.add(i.getSubtotal()); // Isso precisa existir no seu model ItemPedido
+        
+        // Se o pedido foi salvo agora, pode não ter itens carregados
+        if (pedido.getItens() == null || pedido.getItens().isEmpty()) {
+             // Se não tiver itens (ex: na criação do DTO), o total é zero
+             if (pedido.getId() == null) {
+                 pedido.setTotal(BigDecimal.ZERO);
+                 return;
+             }
+             // Se já existe, recarrega
+             Pedido pedidoComItens = buscarCompletoParaEdicao(pedido.getId());
+             for (ItemPedido i : pedidoComItens.getItens()) {
+                 total = total.add(i.getSubtotal());
+             }
+             pedidoComItens.setTotal(total);
+             pedidoRepository.save(pedidoComItens);
+        } else {
+             // Se os itens já estão carregados
+             for (ItemPedido i : pedido.getItens()) {
+                 total = total.add(i.getSubtotal());
+             }
+             pedido.setTotal(total);
+             pedidoRepository.save(pedido);
         }
-        pedidoComItens.setTotal(total);
-        pedidoRepository.save(pedidoComItens);
     }
 }

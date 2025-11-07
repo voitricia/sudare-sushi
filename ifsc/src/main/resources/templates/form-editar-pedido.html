@@ -31,13 +31,10 @@
           <th>Ação</th>
         </tr>
       </thead>
-      
       <tbody>
         <tr th:each="item : ${pedido.itens}">
-
           <th:block th:if="${editItemId != null AND item.id == editItemId}">
             <td style="vertical-align: middle;" th:text="${item.produto.nome}">Produto</td>
-            
             <td style="vertical-align: middle;">
               <form th:action="@{/pedidos/editar/atualizar-item}" method="POST" style="display: flex; align-items: center; gap: 6px;">
                 <input type="hidden" name="pedidoId" th:value="${pedido.id}" />
@@ -46,23 +43,17 @@
                 <button type="submit" class="btn btn-sm">OK</button>
               </form>
             </td>
-
             <td style="vertical-align: middle;" th:text="${'R$ ' + #numbers.formatDecimal(item.precoUnitario,1,'POINT',2,'COMMA')}">R$ 0,00</td>
             <td style="vertical-align: middle;" th:text="${'R$ ' + #numbers.formatDecimal(item.getSubtotal(),1,'POINT',2,'COMMA')}">R$ 0,00</td>
-            
             <td style="vertical-align: middle;">
               <a th:href="@{/pedidos/editar/{id}(id=${pedido.id})}" class="btn btn-sm btn-ghost">Cancelar</a>
             </td>
           </th:block>
-
           <th:block th:unless="${editItemId != null AND item.id == editItemId}">
             <td style="vertical-align: middle;" th:text="${item.produto.nome}">Produto</td>
-            
             <td style="vertical-align: middle;" th:text="${item.quantidade}">1</td>
-
             <td style="vertical-align: middle;" th:text="${'R$ ' + #numbers.formatDecimal(item.precoUnitario,1,'POINT',2,'COMMA')}">R$ 0,00</td>
             <td style="vertical-align: middle;" th:text="${'R$ ' + #numbers.formatDecimal(item.getSubtotal(),1,'POINT',2,'COMMA')}">R$ 0,00</td>
-            
             <td style="vertical-align: middle; white-space: nowrap;">
               <a th:href="@{/pedidos/editar/{id}(id=${pedido.id}, editItemId=${item.id})}" class="btn btn-sm">
                 Editar
@@ -75,7 +66,6 @@
             </td>
           </th:block>
         </tr>
-
         <tr th:if="${#lists.isEmpty(pedido.itens)}">
           <td colspan="5" style="text-align: center; color: var(--muted);">
             Nenhum item adicionado a este pedido.
@@ -97,10 +87,12 @@
 
   <form th:action="@{/pedidos/editar/adicionar-item}" method="POST" class="form-row">
     <input type="hidden" name="pedidoId" th:value="${pedido.id}" />
-
     <div class="form-group" style="flex: 3;">
       <label for="produtoId">Produto</label>
-      <select id="produtoId" name="produtoId" class="form-control">
+      
+      <select id="produtoId" name="produtoId" class="form-control" placeholder="Digite ou selecione um produto...">
+        <option value="" selected>Digite ou selecione um produto...</option>
+        
         <option th:each="prod : ${produtos}"
                 th:if="${prod.ativo}"
                 th:value="${prod.id}"
@@ -109,12 +101,10 @@
         </option>
       </select>
     </div>
-
     <div class="form-group" style="flex: 1;">
       <label for="quantidade">Quantidade</label>
       <input type="number" id="quantidade" name="quantidade" value="1" min="1" class="form-control" />
     </div>
-
     <div class="form-group" style="align-self: flex-end;">
       <button type="submit" class="btn">Adicionar</S>
     </div>
@@ -127,11 +117,65 @@
   <style>
     .form-group label { display: block; margin-bottom: 4px; font-weight: 600; }
     .form-control {
-      background: var(--panel-2); color: var(--text); border: 1px solid var(--stroke);
+      background: #2d2d2d; color: #DDDDDD; border: 1px solid #555555;
       border-radius: 8px; padding: 10px 12px; width: 100%;
     }
-    .form-control:focus { border-color: var(--brand); outline: none; }
+    .form-control:focus { border-color: #E53E3E; outline: none; }
+
+    /* Estilos Tom Select (Dark Mode) */
+    .ts-control {
+      background: #2d2d2d !important; color: #DDDDDD !important;
+      border: 1px solid #555555 !important; border-radius: 8px !important;
+      padding: 10px 12px !important; height: 48px; 
+    }
+    .ts-control.focus {
+      border-color: #E53E3E !important; box-shadow: none !important;
+    }
+    .ts-dropdown {
+      background: #2d2d2d !important; border: 1px solid #555555 !important;
+      border-radius: 8px !important;
+    }
+    .ts-option {
+      color: #DDDDDD !important; padding: 10px 12px !important;
+    }
+    .ts-option.active, .ts-option:hover {
+      background: #E53E3E !important; color: white !important;
+    }
+    .ts-control .item, .ts-control input::placeholder {
+       color: #DDDDDD !important;
+    }
+    /* Placeholder do Tom Select (quando vazio) */
+    .ts-control input::placeholder { color: #888888 !important; }
+    .ts-control .item[data-value=""] { display: none; } /* Esconde o placeholder quando selecionado */
+
+    .ts-dropdown .ts-input {
+      background: #3a3a3a !important; /* Fundo do input de busca */
+      color: #DDDDDD !important;
+      border: 1px solid #555555 !important;
+      border-radius: 4px;
+      margin: 8px;
+      width: calc(100% - 16px);
+      padding: 8px 10px;
+    }
+    .ts-dropdown .ts-input:focus {
+      border-color: #E53E3E !important;
+      outline: none;
+    }
   </style>
+
+
+  <script>
+    document.addEventListener("DOMContentLoaded", () => {
+      new TomSelect('#produtoId', {
+        plugins: ['dropdown_input'], // <-- Ativa a busca DENTRO do dropdown
+        create: false,
+        sortField: {
+          field: "text",
+          direction: "asc"
+        }
+      });
+    });
+  </script>
 
 </section>
 </html>

@@ -71,7 +71,6 @@
                                 <span th:case="'PRONTO'" class="badge badge-info" th:text="${p.status}"></span>
                                 <span th:case="'ENTREGUE'" class="badge badge-primary" th:text="${p.status}"></span>
                                 <span th:case="'FINALIZADO'" class="badge badge-success" th:text="${p.status}"></span>
-                                <span th:case="'CONCLUIDO'" class="badge badge-success" th:text="${p.status}"></span>
                                 <span th:case="'CANCELADO'" class="badge badge-danger" th:text="${p.status}"></span>
                                 <span th:case="*" class="badge" th:text="${p.status}"></span> </th:block>
                         </td>
@@ -83,7 +82,7 @@
                                 Editar Itens
                             </a>
                             
-                            <a th:if="${p.status.name() != 'FINALIZADO' AND p.status.name() != 'CANCELADO' AND p.status.name() != 'CONCLUIDO'}"
+                            <a th:if="${p.status.name() != 'FINALIZADO' AND p.status.name() != 'CANCELADO'}"
                                th:href="@{/(statusEditId=${p.id})}" class="btn btn-sm btn-ghost">
                                 Alterar Status
                             </a>
@@ -106,5 +105,4 @@
     </style>
 
 </section>
-
 </html>
