@@ -25,8 +25,11 @@ public class ItemPedido {
     private BigDecimal precoUnitario;
 
     public BigDecimal getSubtotal() {
-        return precoUnitario.multiply(BigDecimal.valueOf(quantidade));
+    if (precoUnitario == null || quantidade == null) {
+        return BigDecimal.ZERO;
     }
+    return precoUnitario.multiply(BigDecimal.valueOf(quantidade));
+}
 
     public Long getId() { 
         return id; 

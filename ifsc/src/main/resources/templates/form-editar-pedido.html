@@ -8,7 +8,11 @@
 
   <div class="mt-16">
     <strong>Pedido ID:</strong> <span th:text="${pedido.id}">#00</span><br/>
-    <strong>Cliente:</strong> <span th:text="${pedido.cliente.nome}">Nome do Cliente</span><br/>
+    <strong>Cliente:</strong> <span th:text="${pedido.cliente.nome}">Consumidor Final</span><br/>
+    <th:block th:if="${pedido.nomeClienteObservacao != null AND !pedido.nomeClienteObservacao.isEmpty()}">
+        <strong>Observação:</strong> 
+        <span th:text="${pedido.nomeClienteObservacao}"></span><br/>
+    </th:block>
     <strong>Status:</strong> <span th:text="${pedido.status}">ABERTO</span>
   </div>
 
@@ -27,20 +31,51 @@
           <th>Ação</th>
         </tr>
       </thead>
+      
       <tbody>
         <tr th:each="item : ${pedido.itens}">
-          <td th:text="${item.produto.nome}">Produto</td>
-          <td th:text="${item.quantidade}">1</td>
-          <td th:text="${'R$ ' + #numbers.formatDecimal(item.precoUnitario,1,'POINT',2,'COMMA')}">R$ 0,00</td>
-          <td th:text="${'R$ ' + #numbers.formatDecimal(item.getSubtotal(),1,'POINT',2,'COMMA')}">R$ 0,00</td>
-          <td>
-            <form th:action="@{/pedidos/editar/remover-item}" method="POST">
-              <input type="hidden" name="pedidoId" th:value="${pedido.id}" />
-              <input type="hidden" name="itemPedidoId" th:value="${item.id}" />
-              <button type="submit" class="btn btn-sm btn-ghost">Remover</button>
-            </form>
-          </td>
+
+          <th:block th:if="${editItemId != null AND item.id == editItemId}">
+            <td style="vertical-align: middle;" th:text="${item.produto.nome}">Produto</td>
+            
+            <td style="vertical-align: middle;">
+              <form th:action="@{/pedidos/editar/atualizar-item}" method="POST" style="display: flex; align-items: center; gap: 6px;">
+                <input type="hidden" name="pedidoId" th:value="${pedido.id}" />
+                <input type="hidden" name="itemPedidoId" th:value="${item.id}" />
+                <input type="number" name="quantidade" th:value="${item.quantidade}" min="1" class="form-control" style="width: 70px; height: 34px; padding: 5px 8px;" />
+                <button type="submit" class="btn btn-sm">OK</button>
+              </form>
+            </td>
+
+            <td style="vertical-align: middle;" th:text="${'R$ ' + #numbers.formatDecimal(item.precoUnitario,1,'POINT',2,'COMMA')}">R$ 0,00</td>
+            <td style="vertical-align: middle;" th:text="${'R$ ' + #numbers.formatDecimal(item.getSubtotal(),1,'POINT',2,'COMMA')}">R$ 0,00</td>
+            
+            <td style="vertical-align: middle;">
+              <a th:href="@{/pedidos/editar/{id}(id=${pedido.id})}" class="btn btn-sm btn-ghost">Cancelar</a>
+            </td>
+          </th:block>
+
+          <th:block th:unless="${editItemId != null AND item.id == editItemId}">
+            <td style="vertical-align: middle;" th:text="${item.produto.nome}">Produto</td>
+            
+            <td style="vertical-align: middle;" th:text="${item.quantidade}">1</td>
+
+            <td style="vertical-align: middle;" th:text="${'R$ ' + #numbers.formatDecimal(item.precoUnitario,1,'POINT',2,'COMMA')}">R$ 0,00</td>
+            <td style="vertical-align: middle;" th:text="${'R$ ' + #numbers.formatDecimal(item.getSubtotal(),1,'POINT',2,'COMMA')}">R$ 0,00</td>
+            
+            <td style="vertical-align: middle; white-space: nowrap;">
+              <a th:href="@{/pedidos/editar/{id}(id=${pedido.id}, editItemId=${item.id})}" class="btn btn-sm">
+                Editar
+              </a>
+              <form th:action="@{/pedidos/editar/remover-item}" method="POST" style="display: inline-block; margin-left: 6px;">
+                <input type="hidden" name="pedidoId" th:value="${pedido.id}" />
+                <input type="hidden" name="itemPedidoId" th:value="${item.id}" />
+                <button type="submit" class="btn btn-sm btn-ghost">Remover</button>
+              </form>
+            </td>
+          </th:block>
         </tr>
+
         <tr th:if="${#lists.isEmpty(pedido.itens)}">
           <td colspan="5" style="text-align: center; color: var(--muted);">
             Nenhum item adicionado a este pedido.

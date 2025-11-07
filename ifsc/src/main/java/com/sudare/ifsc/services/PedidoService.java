@@ -102,15 +102,62 @@ public class PedidoService {
         item.setProduto(produto);
         item.setQuantidade(quantidade);
         item.setPrecoUnitario(produto.getPreco());
-        pedido.adicionarItem(item);
-        return pedidoRepository.save(pedido);
+        
+        pedido.adicionarItem(item); // O total é (ou deveria ser) atualizado aqui
+        
+        // Vamos garantir que o total seja recalculado e salvo
+        recalcularTotalPedido(pedido);
+        return pedido; // O save é feito pelo recalcularTotalPedido
     }
+
     @Transactional
     public Pedido removerItemDoPedido(Long pedidoId, Long itemPedidoId) {
         Pedido pedido = buscar(pedidoId);
         ItemPedido item = itemPedidoRepository.findById(itemPedidoId)
                 .orElseThrow(() -> new NotFoundException("Item de pedido não encontrado"));
-        pedido.removerItem(item);
-        return pedidoRepository.save(pedido);
+        
+        pedido.removerItem(item); // O total é (ou deveria ser) atualizado aqui
+        itemPedidoRepository.delete(item); // Remove o item
+        
+        // Vamos garantir que o total seja recalculado e salvo
+        recalcularTotalPedido(pedido);
+        return pedido; // O save é feito pelo recalcularTotalPedido
+    }
+
+    // ==========================================================
+    // === MÉTODO NOVO QUE O PAGESCONTROLLER PRECISA ===
+    // ==========================================================
+    
+    /**
+     * Atualiza a quantidade de um item de pedido e recalcula o total.
+     */
+    @Transactional
+    public void atualizarItemQuantidade(Long itemPedidoId, Integer quantidade) {
+        ItemPedido item = itemPedidoRepository.findById(itemPedidoId)
+                .orElseThrow(() -> new NotFoundException("Item de pedido não encontrado"));
+
+        // 1. Atualiza a quantidade do item
+        item.setQuantidade(quantidade);
+        itemPedidoRepository.save(item);
+
+        // 2. Pega o pedido pai e recalcula o total
+        Pedido pedido = item.getPedido();
+        recalcularTotalPedido(pedido);
+    }
+
+    /**
+     * Método auxiliar para recalcular o total do pedido
+     * (É crucial que ItemPedido.getSubtotal() esteja funcionando)
+     */
+    private void recalcularTotalPedido(Pedido pedido) {
+        // Recarrega o pedido com os itens para garantir
+        Pedido pedidoComItens = buscarCompletoParaEdicao(pedido.getId());
+        
+        BigDecimal total = BigDecimal.ZERO;
+        for (ItemPedido i : pedidoComItens.getItens()) {
+            total = total.add(i.getSubtotal()); // Isso precisa existir no seu model ItemPedido
+        }
+        pedidoComItens.setTotal(total);
+        pedidoRepository.save(pedidoComItens);
     }
 }
