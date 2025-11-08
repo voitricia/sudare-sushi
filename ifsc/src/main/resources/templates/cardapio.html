@@ -1,42 +1,62 @@
 <!doctype html>
 <html lang="pt-br" xmlns:th="http://www.thymeleaf.org"
-      th:replace="~{_layout :: layout(${'Cardápio • Sudarê Sushi'}, 'cardapio', ~{::content})}">
+      th:replace="~{_layout :: layout('Cardápio', 'cardapio', ~{::content})}">
 
 <section class="section" th:fragment="content">
-  <h2 class="section-title">Itens do cardápio</h2>
 
-  <div class="menu-grid">
-    <div class="menu-card" th:each="p : ${produtos}" th:attr="data-id=${p.id}">
-      <div class="menu-img skeleton"></div>
-      <div class="menu-body">
-        <div class="menu-title" th:text="${p.nome}">Nome</div>
-        
-        <div class="menu-foot">
-          <span class="price" th:text="${'R$ ' + #numbers.formatDecimal(p.preco,1,'POINT',2,'COMMA')}">R$ 0,00</span>
-          
-          <div class="menu-actions">
-            <a class="btn btn-sm btn-ghost" th:href="@{'/produtos/editar/' + ${p.id}}">Editar</a>
-            
-            <form th:action="@{/cardapio/atualizar-ativo}" method="POST" style="display: inline;" th:if="${p.ativo}">
-              <input type="hidden" name="id" th:value="${p.id}" />
-              <input type="hidden" name="ativo" value="false" />
-              <button type="submit" class="btn btn-sm">Desativar</button>
-            </form>
-
-            <form th:action="@{/cardapio/atualizar-ativo}" method="POST" style="display: inline;" th:unless="${p.ativo}">
-              <input type="hidden" name="id" th:value="${p.id}" />
-              <input type="hidden" name="ativo" value="true" />
-              <button type="submit" class="btn btn-sm">Ativar</button>
-            </form>
-          </div>
-          </div>
-      </div>
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+        <h2 class="section-title" style="margin: 0;">Itens do cardápio</h2>
+        <a class="btn" th:href="@{/produtos/novo}">Adicionar Produto</a>
     </div>
-  </div>
 
-  <div class="form-actions mt">
-    <a class="btn" th:href="@{/produtos/novo}">Adicionar produto</a>
-  </div>
+    <div class="table-wrap">
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Produto</th>
+                    <th>Preço</th>
+                    <th>Status</th>
+                    <th>Ações</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr th:each="prod : ${produtos}">
+                    <td style="font-weight: 600;" th:text="${prod.nome}">Nome do Produto</td>
+                    
+                    <td th:text="${'R$ ' + #numbers.formatDecimal(prod.preco,1,'POINT',2,'COMMA')}">R$ 0,00</td>
+                    
+                    <td>
+                        <span th:if="${prod.ativo}" class="badge badge-success">Ativo</span>
+                        <span th:unless="${prod.ativo}" class="badge badge-danger">Inativo</span>
+                    </td>
+                    
+                    <td style="white-space: nowrap;">
+                        <a th:href="@{/produtos/editar/{id}(id=${prod.id})}" class="btn btn-sm btn-ghost">
+                            Editar
+                        </a>
+
+                        <form th:if="${prod.ativo}" th:action="@{/cardapio/atualizar-ativo}" method="POST" style="display: inline-block; margin-left: 6px;">
+                            <input type="hidden" name="id" th:value="${prod.id}" />
+                            <input type="hidden" name="ativo" value="false" />
+                            <button type="submit" class="btn btn-sm btn-ghost-danger">Desativar</button>
+                        </form>
+
+                        <form th:unless="${prod.ativo}" th:action="@{/cardapio/atualizar-ativo}" method="POST" style="display: inline-block; margin-left: 6px;">
+                            <input type="hidden" name="id" th:value="${prod.id}" />
+                            <input type="hidden" name="ativo" value="true" />
+                            <button type="submit" class="btn btn-sm btn-ghost-success">Ativar</button>
+                        </form>
+                    </td>
+                </tr>
+                
+                <tr th:if="${#lists.isEmpty(produtos)}">
+                    <td colspan="4" style="text-align: center; color: var(--muted);">
+                        Nenhum produto cadastrado.
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
 </section>
-
 </html>
