@@ -7,34 +7,48 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
-import java.math.BigDecimal; 
-import java.time.OffsetDateTime; 
+import java.time.OffsetDateTime;
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 
 public interface PedidoRepository extends JpaRepository<Pedido, Long> {
 
-    @Query("SELECT p FROM Pedido p JOIN FETCH p.cliente c WHERE p.status = :status ORDER BY p.criadoEm ASC")
-    List<Pedido> findAllByStatusWithCliente(@Param("status") StatusPedido status);
+    /**
+     * Método para buscar Pedido com Itens (usado em 'buscarCompletoParaEdicao')
+     */
+    @Query("SELECT p FROM Pedido p LEFT JOIN FETCH p.itens WHERE p.id = :id")
+    Optional<Pedido> findByIdCompleto(@Param("id") Long id);
 
-    @Query(value = "SELECT p FROM Pedido p JOIN FETCH p.cliente c",
-           countQuery = "SELECT COUNT(p) FROM Pedido p")
+    /**
+     * Método para 'buscarUltimosPedidos'
+     */
+    @Query("SELECT p FROM Pedido p JOIN FETCH p.cliente")
     List<Pedido> findAllWithCliente(Pageable pageable);
 
+    /**
+     * Método para 'buscarFilaPreparo' (usando EM_PREPARO e PRONTO)
+     */
+    @Query("SELECT p FROM Pedido p JOIN FETCH p.cliente WHERE p.status IN :statuses")
+    List<Pedido> findAllByStatusInWithCliente(@Param("statuses") Collection<StatusPedido> statuses);
 
-    Long countByStatus(StatusPedido status);
+    /**
+     * Método para Relatório: Busca pedidos FINALIZADOS num intervalo de datas.
+     */
+    @Query("SELECT p FROM Pedido p JOIN FETCH p.cliente c " +
+           "WHERE p.status = :status AND p.criadoEm BETWEEN :inicio AND :fim " +
+           "ORDER BY p.criadoEm DESC")
+    List<Pedido> findPedidosPorStatusEData(
+        @Param("status") StatusPedido status,
+        @Param("inicio") OffsetDateTime inicio,
+        @Param("fim") OffsetDateTime fim
+    );
 
-
-    Long countByCriadoEmAfter(OffsetDateTime inicioDoDia);
-
-
-    @Query("SELECT COALESCE(SUM(p.total), 0) FROM Pedido p WHERE p.criadoEm >= :inicioDoDia")
-    BigDecimal sumTotalByCriadoEmAfter(@Param("inicioDoDia") OffsetDateTime inicioDoDia);
-
-    @Query("SELECT p FROM Pedido p " +
-           "LEFT JOIN FETCH p.cliente c " +
-           "LEFT JOIN FETCH p.itens i " +
-           "LEFT JOIN FETCH i.produto prod " +
-           "WHERE p.id = :id")
-    Optional<Pedido> findByIdCompleto(@Param("id") Long id);
+    /**
+     * Método para Relatório: Busca TODOS os pedidos FINALIZADOS (para o filtro "Tudo").
+     */
+    @Query("SELECT p FROM Pedido p JOIN FETCH p.cliente c " +
+           "WHERE p.status = :status ORDER BY p.criadoEm DESC")
+    List<Pedido> findAllPedidosPorStatus(@Param("status") StatusPedido status);
+    
 }

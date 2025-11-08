@@ -1,9 +1,11 @@
 package com.sudare.ifsc.controller;
 
 import com.sudare.ifsc.dtos.ProdutoDTO;
+import com.sudare.ifsc.dtos.RelatorioDTO;
 import com.sudare.ifsc.model.Pedido;
 import com.sudare.ifsc.model.StatusPedido;
-import com.sudare.ifsc.services.DashboardService;
+// Remova a importação do DashboardService
+// import com.sudare.ifsc.services.DashboardService; 
 import com.sudare.ifsc.services.PedidoService;
 import com.sudare.ifsc.services.ProdutoService;
 import jakarta.validation.Valid;
@@ -17,56 +19,101 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 
 @Controller
 public class PagesController {
 
     private final ProdutoService produtoService;
     private final PedidoService pedidoService;
-    private final DashboardService dashboardService;
+    // Remova esta linha
+    // private final DashboardService dashboardService; 
 
+    // Remova o DashboardService do construtor
     public PagesController(ProdutoService produtoService,
-                           PedidoService pedidoService,
-                           DashboardService dashboardService) {
+                           PedidoService pedidoService) {
         this.produtoService = produtoService;
         this.pedidoService = pedidoService;
-        this.dashboardService = dashboardService;
+        // Remova esta linha
+        // this.dashboardService = dashboardService; 
     }
     
-    @GetMapping("/")
-    public String home(Model model) {
-        model.addAttribute("stats", dashboardService.getDashboardStats());
+    @GetMapping({"/", "/index"})
+    public String home(Model model,
+                       @RequestParam(name = "statusEditId", required = false) Long statusEditId) {
+        
+        // Remova esta linha que chama o serviço com erro
+        // model.addAttribute("stats", dashboardService.getDashboardStats()); 
+        
         model.addAttribute("ultimosPedidos", pedidoService.buscarUltimosPedidos(5));
+        model.addAttribute("fila", pedidoService.buscarFilaPreparo()); 
+        model.addAttribute("statusEditId", statusEditId); 
+        
         return "index";
     }
-    @GetMapping("/pedidos")
-    public String pedidos(Model model) {
-        model.addAttribute("fila", pedidoService.buscarFilaPreparo());
-        return "pedidos";
-    }
+
+    // ... (O RESTO DO SEU CONTROLLER CONTINUA IGUAL) ...
+    // ... (métodos /cardapio, /relatorios, /pedidos/novo, etc) ...
+
     @GetMapping("/cardapio")
     public String cardapio(Model model) {
         model.addAttribute("produtos", produtoService.listarProdutos());
         return "cardapio";
     }
+
     @GetMapping("/relatorios")
     public String relatorios(Model model,
-                             @RequestParam(required = false) String ini,
-                             @RequestParam(required = false) String fim) {
-        model.addAttribute("ini", ini);
-        model.addAttribute("fim", fim);
-        model.addAttribute("resumo", java.util.List.of());
+                             @RequestParam(name = "periodo", required = false) String periodo,
+                             @RequestParam(name = "dataInicio", required = false) String dataInicioStr,
+                             @RequestParam(name = "dataFim", required = false) String dataFimStr) {
+        
+        RelatorioDTO relatorio;
+        String periodoAtivo = "hoje"; // Default
+        LocalDate dataInicio = null;
+        LocalDate dataFim = null;
+
+        if (periodo != null && !periodo.isEmpty()) {
+            // 1. Prioridade 1: Filtro rápido (Hoje, Semana, etc.)
+            periodoAtivo = periodo;
+            relatorio = pedidoService.getRelatorio(periodo);
+            
+        } else if (dataInicioStr != null && !dataInicioStr.isEmpty() && dataFimStr != null && !dataFimStr.isEmpty()) {
+            // 2. Prioridade 2: Filtro customizado por data
+            try {
+                dataInicio = LocalDate.parse(dataInicioStr);
+                dataFim = LocalDate.parse(dataFimStr);
+                relatorio = pedidoService.getRelatorio(dataInicio, dataFim);
+                periodoAtivo = "custom"; // Para não destacar botões
+            } catch (Exception e) {
+                // Em caso de data inválida, volta para o padrão "hoje"
+                relatorio = pedidoService.getRelatorio("hoje");
+            }
+            
+        } else {
+            // 3. Default (sem parâmetros)
+            relatorio = pedidoService.getRelatorio("hoje");
+        }
+
+        model.addAttribute("relatorio", relatorio);
+        model.addAttribute("periodoAtivo", periodoAtivo);
+        
+        // Passa as datas de volta para os inputs
+        model.addAttribute("dataInicio", dataInicio); 
+        model.addAttribute("dataFim", dataFim);
+        
         return "relatorios";
     }
+    
     @PostMapping("/cardapio/atualizar-ativo")
     public String atualizarProdutoAtivo(@RequestParam Long id, @RequestParam boolean ativo) {
         produtoService.atualizarAtivo(id, ativo);
         return "redirect:/cardapio";
     }
+
     @PostMapping("/pedidos/atualizar-status")
     public String atualizarPedidoStatus(@RequestParam Long id, @RequestParam StatusPedido status) {
         pedidoService.atualizarStatus(id, status);
-        return "redirect:/pedidos";
+        return "redirect:/";
     }
 
     @GetMapping("/produtos/novo")
@@ -81,6 +128,7 @@ public class PagesController {
         model.addAttribute("produto", produtoService.buscarDTO(id));
         return "form-produto";
     }
+
     @PostMapping("/produtos/salvar")
     public String salvarProduto(@Valid @ModelAttribute("produto") ProdutoDTO dto, 
                                 BindingResult bindingResult) {
@@ -99,6 +147,7 @@ public class PagesController {
     public String mostrarFormNovoPedido() {
         return "form-pedido"; 
     }
+
     @PostMapping("/pedidos/criar")
     public String criarPedido(@RequestParam String nomeObservacao) {
         if(nomeObservacao == null || nomeObservacao.trim().isEmpty()) {
@@ -107,23 +156,40 @@ public class PagesController {
         Pedido pedidoSalvo = pedidoService.criarNovoPedido(nomeObservacao);
         return "redirect:/pedidos/editar/" + pedidoSalvo.getId();
     }
+    
     @GetMapping("/pedidos/editar/{id}")
-    public String mostrarFormEditarPedido(@PathVariable Long id, Model model) {
+    public String mostrarFormEditarPedido(@PathVariable Long id, Model model,
+                                          @RequestParam(name = "editItemId", required = false) Long editItemId) {
+        
         model.addAttribute("pedido", pedidoService.buscarCompletoParaEdicao(id));
         model.addAttribute("produtos", produtoService.listarProdutos());
-        return "form-editar-pedido";
+        model.addAttribute("editItemId", editItemId); 
+        
+        return "form-editar-pedido"; 
     }
+    
     @PostMapping("/pedidos/editar/adicionar-item")
     public String adicionarItemAoPedido(@RequestParam Long pedidoId,
-                                    @RequestParam Long produtoId,
-                                    @RequestParam Integer quantidade) {
+                                        @RequestParam Long produtoId,
+                                        @RequestParam Integer quantidade) {
         pedidoService.adicionarItemAoPedido(pedidoId, produtoId, quantidade);
         return "redirect:/pedidos/editar/" + pedidoId;
     }
+    
     @PostMapping("/pedidos/editar/remover-item")
     public String removerItemDoPedido(@RequestParam Long pedidoId,
-                                  @RequestParam Long itemPedidoId) {
+                                      @RequestParam Long itemPedidoId) {
         pedidoService.removerItemDoPedido(pedidoId, itemPedidoId);
+        return "redirect:/pedidos/editar/" + pedidoId;
+    }
+
+    @PostMapping("/pedidos/editar/atualizar-item")
+    public String atualizarItemDoPedido(@RequestParam Long pedidoId,
+                                        @RequestParam Long itemPedidoId,
+                                        @RequestParam Integer quantidade) {
+        
+        pedidoService.atualizarItemQuantidade(itemPedidoId, quantidade);
+        
         return "redirect:/pedidos/editar/" + pedidoId;
     }
 }

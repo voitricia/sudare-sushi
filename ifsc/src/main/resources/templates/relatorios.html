@@ -1,31 +1,86 @@
 <!doctype html>
 <html lang="pt-br" xmlns:th="http://www.thymeleaf.org"
-      th:replace="~{_layout :: layout(${'Relatórios • Sudarê Sushi'}, 'relatorios', ~{::content})}">
-<section th:fragment="content">
-  <h2>Relatórios</h2>
+      th:replace="~{_layout :: layout('Relatórios', 'relatorios', ~{::content})}">
 
-  <form class="filters" th:action="@{/relatorios}" method="get">
-    <label>Período:
-      <input type="date" name="ini" th:value="${ini}">
-      <span>—</span>
-      <input type="date" name="fim" th:value="${fim}">
-    </label>
-    <button class="btn" type="submit">Aplicar</button>
-  </form>
+<section class.section th:fragment="content">
 
-  <div class="table-wrap mt-16">
-    <table class="table">
-      <thead><tr><th>Data</th><th>Pedidos</th><th>Itens</th><th>Faturamento (R$)</th></tr></thead>
-      <tbody>
-        <tr th:each="r : ${resumo}">
-          <td th:text="${r.data}">2025-11-03</td>
-          <td th:text="${r.pedidos}">0</td>
-          <td th:text="${r.itens}">0</td>
-          <td th:text="${#numbers.formatDecimal(r.faturamento,1,'POINT',2,'COMMA')}">0,00</td>
-        </tr>
-        <tr th:if="${#lists.isEmpty(resumo)}"><td colspan="4">Sem dados para o período.</td></tr>
-      </tbody>
-    </table>
-  </div>
+    <h2 class="section-title" style="margin-bottom: 20px;">Relatórios</h2>
+
+    <div class="filter-bar">
+        <a th:href="@{/relatorios(periodo='hoje')}"
+           class="btn-filter"
+           th:classappend="${periodoAtivo == 'hoje'} ? 'is-active'">Hoje</a>
+        
+        <a th:href="@{/relatorios(periodo='semana')}"
+           class="btn-filter"
+           th:classappend="${periodoAtivo == 'semana'} ? 'is-active'">Últimos 7 dias</a>
+        
+        <a th:href="@{/relatorios(periodo='mes')}"
+           class="btn-filter"
+           th:classappend="${periodoAtivo == 'mes'} ? 'is-active'">Mês atual</a>
+        
+        <a th:href="@{/relatorios(periodo='tudo')}"
+           class="btn-filter"
+           th:classappend="${periodoAtivo == 'tudo'} ? 'is-active'">Tudo</a>
+    </div>
+
+    <form th:action="@{/relatorios}" method="GET" class="form-row" style="margin-bottom: 25px;">
+        <div class="form-group" style="flex: 2;">
+            <label for="dataInicio">Data Início</label>
+            <input type="date" id="dataInicio" name="dataInicio" th:value="${dataInicio}" class="form-control" />
+        </div>
+        <div class="form-group" style="flex: 2;">
+            <label for="dataFim">Data Fim</label>
+            <input type="date" id="dataFim" name="dataFim" th:value="${dataFim}" class="form-control" />
+        </div>
+        <div class="form-group" style="flex: 1;">
+            <label>&nbsp;</label> 
+            <button type="submit" class="btn" style="width: 100%;">Filtrar</button>
+        </div>
+    </form>
+
+
+    <div class="stats-grid">
+        <div class="stat-card">
+            <span>Faturamento Total</span>
+            <strong th:text="${'R$ ' + #numbers.formatDecimal(relatorio.faturamentoTotal,1,'POINT',2,'COMMA')}">R$ 0,00</strong>
+        </div>
+        <div class="stat-card">
+            <span>Número de Pedidos</span>
+            <strong th:text="${relatorio.numeroDePedidos}">0</strong>
+        </div>
+    </div>
+
+    <h3 class="section-subtitle">Pedidos Faturados</h3>
+    
+    <div class="table-wrap">
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Data</th>
+                    <th>Nº Pedido</th>
+                    <th>Cliente</th>
+                    <th>Itens</th>
+                    <th>Total</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr th:each="p : ${relatorio.pedidos}">
+                    <td th:text="${#temporals.format(p.criadoEm, 'dd/MM/yy HH:mm')}">Data</td>
+                    <td th:text="${p.id}">#00</td>
+                    <td th:text="${p.nomeClienteObservacao ?: p.cliente.nome}">Cliente</td>
+                    <td th:text="${#lists.size(p.itens)}">0</td>
+                    <td th:text="${'R$ ' + #numbers.formatDecimal(p.total,1,'POINT',2,'COMMA')}">R$ 0,00</td>
+                </tr>
+                
+                <tr th:if="${#lists.isEmpty(relatorio.pedidos)}">
+                    <td colspan="5" style="text-align: center; color: var(--muted);">
+                        Nenhum pedido faturado para o período.
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
 </section>
 </html>
