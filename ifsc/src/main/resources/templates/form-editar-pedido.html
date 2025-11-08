@@ -8,7 +8,11 @@
 
   <div class="mt-16">
     <strong>Pedido ID:</strong> <span th:text="${pedido.id}">#00</span><br/>
-    <strong>Cliente:</strong> <span th:text="${pedido.cliente.nome}">Nome do Cliente</span><br/>
+    <strong>Cliente:</strong> <span th:text="${pedido.cliente.nome}">Consumidor Final</span><br/>
+    <th:block th:if="${pedido.nomeClienteObservacao != null AND !pedido.nomeClienteObservacao.isEmpty()}">
+        <strong>Observação:</strong> 
+        <span th:text="${pedido.nomeClienteObservacao}"></span><br/>
+    </th:block>
     <strong>Status:</strong> <span th:text="${pedido.status}">ABERTO</span>
   </div>
 
@@ -29,17 +33,38 @@
       </thead>
       <tbody>
         <tr th:each="item : ${pedido.itens}">
-          <td th:text="${item.produto.nome}">Produto</td>
-          <td th:text="${item.quantidade}">1</td>
-          <td th:text="${'R$ ' + #numbers.formatDecimal(item.precoUnitario,1,'POINT',2,'COMMA')}">R$ 0,00</td>
-          <td th:text="${'R$ ' + #numbers.formatDecimal(item.getSubtotal(),1,'POINT',2,'COMMA')}">R$ 0,00</td>
-          <td>
-            <form th:action="@{/pedidos/editar/remover-item}" method="POST">
-              <input type="hidden" name="pedidoId" th:value="${pedido.id}" />
-              <input type="hidden" name="itemPedidoId" th:value="${item.id}" />
-              <button type="submit" class="btn btn-sm btn-ghost">Remover</button>
-            </form>
-          </td>
+          <th:block th:if="${editItemId != null AND item.id == editItemId}">
+            <td style="vertical-align: middle;" th:text="${item.produto.nome}">Produto</td>
+            <td style="vertical-align: middle;">
+              <form th:action="@{/pedidos/editar/atualizar-item}" method="POST" style="display: flex; align-items: center; gap: 6px;">
+                <input type="hidden" name="pedidoId" th:value="${pedido.id}" />
+                <input type="hidden" name="itemPedidoId" th:value="${item.id}" />
+                <input type="number" name="quantidade" th:value="${item.quantidade}" min="1" class="form-control" style="width: 70px; height: 34px; padding: 5px 8px;" />
+                <button type="submit" class="btn btn-sm">OK</button>
+              </form>
+            </td>
+            <td style="vertical-align: middle;" th:text="${'R$ ' + #numbers.formatDecimal(item.precoUnitario,1,'POINT',2,'COMMA')}">R$ 0,00</td>
+            <td style="vertical-align: middle;" th:text="${'R$ ' + #numbers.formatDecimal(item.getSubtotal(),1,'POINT',2,'COMMA')}">R$ 0,00</td>
+            <td style="vertical-align: middle;">
+              <a th:href="@{/pedidos/editar/{id}(id=${pedido.id})}" class="btn btn-sm btn-ghost">Cancelar</a>
+            </td>
+          </th:block>
+          <th:block th:unless="${editItemId != null AND item.id == editItemId}">
+            <td style="vertical-align: middle;" th:text="${item.produto.nome}">Produto</td>
+            <td style="vertical-align: middle;" th:text="${item.quantidade}">1</td>
+            <td style="vertical-align: middle;" th:text="${'R$ ' + #numbers.formatDecimal(item.precoUnitario,1,'POINT',2,'COMMA')}">R$ 0,00</td>
+            <td style="vertical-align: middle;" th:text="${'R$ ' + #numbers.formatDecimal(item.getSubtotal(),1,'POINT',2,'COMMA')}">R$ 0,00</td>
+            <td style="vertical-align: middle; white-space: nowrap;">
+              <a th:href="@{/pedidos/editar/{id}(id=${pedido.id}, editItemId=${item.id})}" class="btn btn-sm">
+                Editar
+              </a>
+              <form th:action="@{/pedidos/editar/remover-item}" method="POST" style="display: inline-block; margin-left: 6px;">
+                <input type="hidden" name="pedidoId" th:value="${pedido.id}" />
+                <input type="hidden" name="itemPedidoId" th:value="${item.id}" />
+                <button type="submit" class="btn btn-sm btn-ghost">Remover</button>
+              </form>
+            </td>
+          </th:block>
         </tr>
         <tr th:if="${#lists.isEmpty(pedido.itens)}">
           <td colspan="5" style="text-align: center; color: var(--muted);">
@@ -62,10 +87,12 @@
 
   <form th:action="@{/pedidos/editar/adicionar-item}" method="POST" class="form-row">
     <input type="hidden" name="pedidoId" th:value="${pedido.id}" />
-
     <div class="form-group" style="flex: 3;">
       <label for="produtoId">Produto</label>
-      <select id="produtoId" name="produtoId" class="form-control">
+      
+      <select id="produtoId" name="produtoId" class="form-control" placeholder="Digite ou selecione um produto...">
+        <option value="" selected>Digite ou selecione um produto...</option>
+        
         <option th:each="prod : ${produtos}"
                 th:if="${prod.ativo}"
                 th:value="${prod.id}"
@@ -74,29 +101,83 @@
         </option>
       </select>
     </div>
-
     <div class="form-group" style="flex: 1;">
       <label for="quantidade">Quantidade</label>
       <input type="number" id="quantidade" name="quantidade" value="1" min="1" class="form-control" />
     </div>
-
     <div class="form-group" style="align-self: flex-end;">
       <button type="submit" class="btn">Adicionar</S>
     </div>
   </form>
 
   <div class="form-actions mt-22">
-    <a th:href="@{/index}" class="btn">Concluir Edição (Voltar)</a>
+    <a th:href="@{/}" class="btn">Concluir Edição (Voltar)</a>
   </div>
 
   <style>
-    .form-group label { display: block; margin-bottom: 4px; font-weight: 600; }
-    .form-control {
-      background: var(--panel-2); color: var(--text); border: 1px solid var(--stroke);
-      border-radius: 8px; padding: 10px 12px; width: 100%;
+    /* Estilos Tom Select (para combinar com o .form-control do tema claro) */
+    .ts-control {
+      background: var(--panel) !important;
+      color: var(--text) !important;
+      border: 1px solid var(--stroke) !important;
+      border-radius: 8px !important;
+      padding: 10px 12px !important;
+      height: 48px; 
     }
-    .form-control:focus { border-color: var(--brand); outline: none; }
+    .ts-control.focus {
+      border-color: var(--brand) !important; 
+      box-shadow: 0 0 0 3px rgba(229, 62, 62, 0.1) !important;
+      outline: none !important;
+    }
+    .ts-dropdown {
+      background: var(--panel) !important; 
+      border: 1px solid var(--stroke) !important;
+      border-radius: 8px !important;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+    }
+    .ts-option {
+      color: var(--text) !important; 
+      padding: 10px 12px !important;
+    }
+    .ts-option.active, .ts-option:hover {
+      background: var(--brand) !important; 
+      color: var(--brand-text) !important;
+    }
+    .ts-control .item {
+       color: var(--text) !important;
+    }
+    /* Placeholder (ex: "Digite ou selecione...") */
+    .ts-control input::placeholder { 
+      color: var(--muted) !important; 
+    }
+
+    /* Estilo para o campo de busca DENTRO do dropdown */
+    .ts-dropdown .ts-input {
+      background: var(--bg) !important; /* Fundo do input (cinza claro) */
+      color: var(--text) !important;
+      border: 1px solid var(--stroke) !important;
+      border-radius: 4px;
+      margin: 8px;
+      width: calc(100% - 16px);
+      padding: 8px 10px;
+    }
+    .ts-dropdown .ts-input:focus {
+      border-color: var(--brand) !important;
+      outline: none;
+    }
   </style>
+  <script>
+    document.addEventListener("DOMContentLoaded", () => {
+      new TomSelect('#produtoId', {
+        plugins: ['dropdown_input'], // Ativa a busca DENTRO do dropdown
+        create: false,
+        sortField: {
+          field: "text",
+          direction: "asc"
+        }
+      });
+    });
+  </script>
 
 </section>
 </html>
