@@ -8,7 +8,6 @@
   <link rel="stylesheet" th:href="@{/css/style.css}" />
 
   <link href="https://cdn.jsdelivr.net/npm/tom-select@2.3.1/dist/css/tom-select.default.css" rel="stylesheet">
-
 </head>
 
 <body>
@@ -22,7 +21,7 @@
     </nav>
   </header>
 
-  <main class="container" th:replace="${content}">
+  <main class="container" th:insert="${content}">
     <p>Carregando...</p>
   </main>
 
@@ -33,5 +32,4 @@
   <script src="https://cdn.jsdelivr.net/npm/tom-select@2.3.1/dist/js/tom-select.complete.min.js"></script>
 
 </body>
-
 </html>
