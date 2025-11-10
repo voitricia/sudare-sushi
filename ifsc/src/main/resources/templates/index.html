@@ -28,7 +28,7 @@
 
                     <th:block th:if="${statusEditId != null AND p.id == statusEditId}">
                         <td style="vertical-align: middle;" th:text="${p.id}">#</td>
-                        <td style="vertical-align: middle;" th:text="${p.cliente.nome}">Cliente</td>
+                        <td style="vertical-align: middle;" th:text="${p.nomeClienteObservacao}">Cliente</td>
                         <td style="vertical-align: middle;" th:text="${#lists.size(p.itens)}">0</td>
                         <td style="vertical-align: middle;"
                             th:text="${'R$ ' + #numbers.formatDecimal(p.total,1,'POINT',2,'COMMA')}">R$ 0,00</td>
@@ -61,7 +61,7 @@
 
                     <th:block th:unless="${statusEditId != null AND p.id == statusEditId}">
                         <td th:text="${p.id}">#</td>
-                        <td th:text="${p.cliente.nome}">Cliente</td>
+                        <td th:text="${p.nomeClienteObservacao}">Cliente</td>
                         <td th:text="${#lists.size(p.itens)}">0</td>
                         <td th:text="${'R$ ' + #numbers.formatDecimal(p.total,1,'POINT',2,'COMMA')}">R$ 0,00</td>
 

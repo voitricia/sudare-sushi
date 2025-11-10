@@ -26,34 +26,21 @@ public class PagesController {
 
     private final ProdutoService produtoService;
     private final PedidoService pedidoService;
-    // Remova esta linha
-    // private final DashboardService dashboardService; 
-
-    // Remova o DashboardService do construtor
     public PagesController(ProdutoService produtoService,
                            PedidoService pedidoService) {
         this.produtoService = produtoService;
         this.pedidoService = pedidoService;
-        // Remova esta linha
-        // this.dashboardService = dashboardService; 
     }
     
     @GetMapping({"/", "/index"})
     public String home(Model model,
                        @RequestParam(name = "statusEditId", required = false) Long statusEditId) {
-        
-        // Remova esta linha que chama o serviço com erro
-        // model.addAttribute("stats", dashboardService.getDashboardStats()); 
-        
         model.addAttribute("ultimosPedidos", pedidoService.buscarUltimosPedidos(5));
         model.addAttribute("fila", pedidoService.buscarFilaPreparo()); 
         model.addAttribute("statusEditId", statusEditId); 
         
         return "index";
     }
-
-    // ... (O RESTO DO SEU CONTROLLER CONTINUA IGUAL) ...
-    // ... (métodos /cardapio, /relatorios, /pedidos/novo, etc) ...
 
     @GetMapping("/cardapio")
     public String cardapio(Model model) {
@@ -68,29 +55,27 @@ public class PagesController {
                              @RequestParam(name = "dataFim", required = false) String dataFimStr) {
         
         RelatorioDTO relatorio;
-        String periodoAtivo = "hoje"; // Default
+        String periodoAtivo = "hoje"; 
         LocalDate dataInicio = null;
         LocalDate dataFim = null;
 
         if (periodo != null && !periodo.isEmpty()) {
-            // 1. Prioridade 1: Filtro rápido (Hoje, Semana, etc.)
             periodoAtivo = periodo;
             relatorio = pedidoService.getRelatorio(periodo);
             
         } else if (dataInicioStr != null && !dataInicioStr.isEmpty() && dataFimStr != null && !dataFimStr.isEmpty()) {
-            // 2. Prioridade 2: Filtro customizado por data
             try {
                 dataInicio = LocalDate.parse(dataInicioStr);
                 dataFim = LocalDate.parse(dataFimStr);
                 relatorio = pedidoService.getRelatorio(dataInicio, dataFim);
-                periodoAtivo = "custom"; // Para não destacar botões
+                periodoAtivo = "custom"; 
             } catch (Exception e) {
                 // Em caso de data inválida, volta para o padrão "hoje"
                 relatorio = pedidoService.getRelatorio("hoje");
             }
             
         } else {
-            // 3. Default (sem parâmetros)
+            // Default (sem parâmetros)
             relatorio = pedidoService.getRelatorio("hoje");
         }
 

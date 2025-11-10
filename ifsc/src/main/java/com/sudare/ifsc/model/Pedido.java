@@ -1,11 +1,11 @@
 package com.sudare.ifsc.model;
 
 import jakarta.persistence.*;
-import org.hibernate.annotations.CreationTimestamp; // Importe este
-import org.hibernate.annotations.UpdateTimestamp;  // Importe este
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
 
 import java.math.BigDecimal;
-import java.time.OffsetDateTime; // Importe este
+import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -16,11 +16,13 @@ public class Pedido {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "cliente_id", nullable = false)
-    private Cliente cliente;
+    // --- RELAÇÃO COM CLIENTE REMOVIDA ---
+    // @ManyToOne(fetch = FetchType.LAZY)
+    // @JoinColumn(name = "cliente_id", nullable = false)
+    // private Cliente cliente;
+    // ------------------------------------
 
-    // Coluna para "Pedido Balcão" (observação)
+    // Este campo agora é o único "dono" do nome
     private String nomeClienteObservacao;
 
     @Enumerated(EnumType.STRING)
@@ -30,24 +32,16 @@ public class Pedido {
     @Column(nullable = false)
     private BigDecimal total = BigDecimal.ZERO;
 
-    // cascade = CascadeType.ALL e orphanRemoval = true
-    // garantem que os Itens sejam salvos/removidos junto com o Pedido
     @OneToMany(mappedBy = "pedido", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     private List<ItemPedido> itens = new ArrayList<>();
 
-    // ==========================================================
-    // === CAMPOS QUE FALTAVAM (A CORREÇÃO ESTÁ AQUI) ===
-    // ==========================================================
-    
-    @CreationTimestamp // Define automaticamente a data de criação
+    @CreationTimestamp
     @Column(nullable = false, updatable = false)
     private OffsetDateTime criadoEm;
 
-    @UpdateTimestamp // Define automaticamente a data de atualização
+    @UpdateTimestamp
     @Column(nullable = false)
     private OffsetDateTime atualizadoEm;
-    
-    // ==========================================================
 
     // --- Métodos Auxiliares ---
 
@@ -62,7 +56,7 @@ public class Pedido {
     }
 
     // --- Getters e Setters ---
-    // (Lembre-se de gerar os getters e setters para os novos campos)
+    // (Getters e Setters de Cliente foram removidos)
 
     public Long getId() {
         return id;
@@ -70,14 +64,6 @@ public class Pedido {
 
     public void setId(Long id) {
         this.id = id;
-    }
-
-    public Cliente getCliente() {
-        return cliente;
-    }
-
-    public void setCliente(Cliente cliente) {
-        this.cliente = cliente;
     }
 
     public String getNomeClienteObservacao() {
@@ -112,7 +98,6 @@ public class Pedido {
         this.itens = itens;
     }
 
-    // Getters e Setters para os campos novos
     public OffsetDateTime getCriadoEm() {
         return criadoEm;
     }
