@@ -1,11 +1,11 @@
 package com.sudare.ifsc.model;
 
 import jakarta.persistence.*;
-import org.hibernate.annotations.CreationTimestamp; // Importe este
-import org.hibernate.annotations.UpdateTimestamp;  // Importe este
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
 
 import java.math.BigDecimal;
-import java.time.OffsetDateTime; // Importe este
+import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -20,7 +20,6 @@ public class Pedido {
     @JoinColumn(name = "cliente_id", nullable = false)
     private Cliente cliente;
 
-    // Coluna para "Pedido Balcão" (observação)
     private String nomeClienteObservacao;
 
     @Enumerated(EnumType.STRING)
@@ -30,24 +29,20 @@ public class Pedido {
     @Column(nullable = false)
     private BigDecimal total = BigDecimal.ZERO;
 
-    // cascade = CascadeType.ALL e orphanRemoval = true
-    // garantem que os Itens sejam salvos/removidos junto com o Pedido
+    // === NOVO CAMPO PARA TAXA DE SERVIÇO ===
+    @Column(nullable = false)
+    private boolean taxaServico = false; 
+
     @OneToMany(mappedBy = "pedido", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     private List<ItemPedido> itens = new ArrayList<>();
 
-    // ==========================================================
-    // === CAMPOS QUE FALTAVAM (A CORREÇÃO ESTÁ AQUI) ===
-    // ==========================================================
-    
-    @CreationTimestamp // Define automaticamente a data de criação
+    @CreationTimestamp
     @Column(nullable = false, updatable = false)
     private OffsetDateTime criadoEm;
 
-    @UpdateTimestamp // Define automaticamente a data de atualização
+    @UpdateTimestamp
     @Column(nullable = false)
     private OffsetDateTime atualizadoEm;
-    
-    // ==========================================================
 
     // --- Métodos Auxiliares ---
 
@@ -61,71 +56,91 @@ public class Pedido {
         item.setPedido(null);
     }
 
+    // Calcula o subtotal (soma dos itens sem taxa)
+    public BigDecimal getSubtotalItens() {
+        if (itens == null) return BigDecimal.ZERO;
+        return itens.stream()
+                .map(ItemPedido::getSubtotal)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+    }
+
+    // Calcula apenas o valor da taxa para exibição
+    public BigDecimal getValorTaxaServico() {
+        if (!taxaServico) return BigDecimal.ZERO;
+        return getSubtotalItens().multiply(new BigDecimal("0.10"));
+    }
+
     // --- Getters e Setters ---
-    // (Lembre-se de gerar os getters e setters para os novos campos)
 
-    public Long getId() {
-        return id;
+    public Long getId() { 
+        return id; 
     }
 
-    public void setId(Long id) {
-        this.id = id;
+    public void setId(Long id) { 
+        this.id = id; 
     }
 
-    public Cliente getCliente() {
-        return cliente;
+    public Cliente getCliente() { 
+        return cliente; 
     }
 
-    public void setCliente(Cliente cliente) {
-        this.cliente = cliente;
+    public void setCliente(Cliente cliente) { 
+        this.cliente = cliente; 
     }
 
-    public String getNomeClienteObservacao() {
-        return nomeClienteObservacao;
+    public String getNomeClienteObservacao() { 
+        return nomeClienteObservacao; 
     }
 
-    public void setNomeClienteObservacao(String nomeClienteObservacao) {
-        this.nomeClienteObservacao = nomeClienteObservacao;
+    public void setNomeClienteObservacao(String nomeClienteObservacao) { 
+        this.nomeClienteObservacao = nomeClienteObservacao; 
     }
 
-    public StatusPedido getStatus() {
-        return status;
+    public StatusPedido getStatus() { 
+        return status; 
+    }
+    
+    public void setStatus(StatusPedido status) { 
+        this.status = status; 
     }
 
-    public void setStatus(StatusPedido status) {
-        this.status = status;
+    public BigDecimal getTotal() { 
+        return total; 
+    }
+    
+    public void setTotal(BigDecimal total) { 
+        this.total = total; 
     }
 
-    public BigDecimal getTotal() {
-        return total;
+    public List<ItemPedido> getItens() { 
+        return itens; 
     }
 
-    public void setTotal(BigDecimal total) {
-        this.total = total;
+    public void setItens(List<ItemPedido> itens) { 
+        this.itens = itens; 
     }
 
-    public List<ItemPedido> getItens() {
-        return itens;
+    public OffsetDateTime getCriadoEm() { 
+        return criadoEm; 
     }
 
-    public void setItens(List<ItemPedido> itens) {
-        this.itens = itens;
+    public void setCriadoEm(OffsetDateTime criadoEm) { 
+        this.criadoEm = criadoEm; 
     }
 
-    // Getters e Setters para os campos novos
-    public OffsetDateTime getCriadoEm() {
-        return criadoEm;
+    public OffsetDateTime getAtualizadoEm() { 
+        return atualizadoEm; 
     }
 
-    public void setCriadoEm(OffsetDateTime criadoEm) {
-        this.criadoEm = criadoEm;
+    public void setAtualizadoEm(OffsetDateTime atualizadoEm) { 
+        this.atualizadoEm = atualizadoEm; 
+    }
+    
+    public boolean isTaxaServico() { 
+        return taxaServico; 
     }
 
-    public OffsetDateTime getAtualizadoEm() {
-        return atualizadoEm;
-    }
-
-    public void setAtualizadoEm(OffsetDateTime atualizadoEm) {
-        this.atualizadoEm = atualizadoEm;
+    public void setTaxaServico(boolean taxaServico) { 
+        this.taxaServico = taxaServico; 
     }
 }

@@ -73,7 +73,28 @@
         </tr>
       </tbody>
       <tfoot>
-        <tr style="font-size: 1.2em; font-weight: 700;">
+        <tr style="border-top: 2px solid var(--stroke);">
+            <td colspan="3" style="text-align: right; font-weight: 600;">Subtotal:</td>
+            <td colspan="2" th:text="${'R$ ' + #numbers.formatDecimal(pedido.getSubtotalItens(),1,'POINT',2,'COMMA')}">R$ 0,00</td>
+        </tr>
+        
+        <tr>
+            <td colspan="3" style="text-align: right;">
+                <form th:action="@{/pedidos/editar/taxa-servico}" method="POST" id="formTaxa">
+                    <input type="hidden" name="pedidoId" th:value="${pedido.id}" />
+                    <label style="cursor: pointer; display: flex; align-items: center; justify-content: flex-end; gap: 8px;">
+                        <input type="checkbox" name="taxaAtiva" 
+                               th:checked="${pedido.taxaServico}"
+                               onchange="document.getElementById('formTaxa').submit()"
+                               style="accent-color: var(--brand); width: 16px; height: 16px;" />
+                        Taxa de serviço (10%)
+                    </label>
+                </form>
+            </td>
+            <td colspan="2" th:text="${'+ R$ ' + #numbers.formatDecimal(pedido.getValorTaxaServico(),1,'POINT',2,'COMMA')}">R$ 0,00</td>
+        </tr>
+
+        <tr style="font-size: 1.3em; font-weight: 800; color: var(--brand);">
           <td colspan="3" style="text-align: right;">TOTAL:</td>
           <td colspan="2" th:text="${'R$ ' + #numbers.formatDecimal(pedido.total,1,'POINT',2,'COMMA')}">R$ 0,00</td>
         </tr>
@@ -115,7 +136,7 @@
   </div>
 
   <style>
-    /* Estilos Tom Select (para combinar com o .form-control do tema claro) */
+    /* Estilos Tom Select (mantidos) */
     .ts-control {
       background: var(--panel) !important;
       color: var(--text) !important;
@@ -143,17 +164,10 @@
       background: var(--brand) !important; 
       color: var(--brand-text) !important;
     }
-    .ts-control .item {
-       color: var(--text) !important;
-    }
-    /* Placeholder (ex: "Digite ou selecione...") */
-    .ts-control input::placeholder { 
-      color: var(--muted) !important; 
-    }
-
-    /* Estilo para o campo de busca DENTRO do dropdown */
+    .ts-control .item { color: var(--text) !important; }
+    .ts-control input::placeholder { color: var(--muted) !important; }
     .ts-dropdown .ts-input {
-      background: var(--bg) !important; /* Fundo do input (cinza claro) */
+      background: var(--bg) !important;
       color: var(--text) !important;
       border: 1px solid var(--stroke) !important;
       border-radius: 4px;
@@ -169,12 +183,9 @@
   <script>
     document.addEventListener("DOMContentLoaded", () => {
       new TomSelect('#produtoId', {
-        plugins: ['dropdown_input'], // Ativa a busca DENTRO do dropdown
+        plugins: ['dropdown_input'],
         create: false,
-        sortField: {
-          field: "text",
-          direction: "asc"
-        }
+        sortField: { field: "text", direction: "asc" }
       });
     });
   </script>

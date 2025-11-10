@@ -4,8 +4,6 @@ import com.sudare.ifsc.dtos.ProdutoDTO;
 import com.sudare.ifsc.dtos.RelatorioDTO;
 import com.sudare.ifsc.model.Pedido;
 import com.sudare.ifsc.model.StatusPedido;
-// Remova a importação do DashboardService
-// import com.sudare.ifsc.services.DashboardService; 
 import com.sudare.ifsc.services.PedidoService;
 import com.sudare.ifsc.services.ProdutoService;
 import jakarta.validation.Valid;
@@ -26,34 +24,21 @@ public class PagesController {
 
     private final ProdutoService produtoService;
     private final PedidoService pedidoService;
-    // Remova esta linha
-    // private final DashboardService dashboardService; 
 
-    // Remova o DashboardService do construtor
     public PagesController(ProdutoService produtoService,
                            PedidoService pedidoService) {
         this.produtoService = produtoService;
         this.pedidoService = pedidoService;
-        // Remova esta linha
-        // this.dashboardService = dashboardService; 
     }
     
     @GetMapping({"/", "/index"})
     public String home(Model model,
                        @RequestParam(name = "statusEditId", required = false) Long statusEditId) {
-        
-        // Remova esta linha que chama o serviço com erro
-        // model.addAttribute("stats", dashboardService.getDashboardStats()); 
-        
         model.addAttribute("ultimosPedidos", pedidoService.buscarUltimosPedidos(5));
         model.addAttribute("fila", pedidoService.buscarFilaPreparo()); 
         model.addAttribute("statusEditId", statusEditId); 
-        
         return "index";
     }
-
-    // ... (O RESTO DO SEU CONTROLLER CONTINUA IGUAL) ...
-    // ... (métodos /cardapio, /relatorios, /pedidos/novo, etc) ...
 
     @GetMapping("/cardapio")
     public String cardapio(Model model) {
@@ -66,41 +51,31 @@ public class PagesController {
                              @RequestParam(name = "periodo", required = false) String periodo,
                              @RequestParam(name = "dataInicio", required = false) String dataInicioStr,
                              @RequestParam(name = "dataFim", required = false) String dataFimStr) {
-        
         RelatorioDTO relatorio;
-        String periodoAtivo = "hoje"; // Default
+        String periodoAtivo = "hoje";
         LocalDate dataInicio = null;
         LocalDate dataFim = null;
 
         if (periodo != null && !periodo.isEmpty()) {
-            // 1. Prioridade 1: Filtro rápido (Hoje, Semana, etc.)
             periodoAtivo = periodo;
             relatorio = pedidoService.getRelatorio(periodo);
-            
         } else if (dataInicioStr != null && !dataInicioStr.isEmpty() && dataFimStr != null && !dataFimStr.isEmpty()) {
-            // 2. Prioridade 2: Filtro customizado por data
             try {
                 dataInicio = LocalDate.parse(dataInicioStr);
                 dataFim = LocalDate.parse(dataFimStr);
                 relatorio = pedidoService.getRelatorio(dataInicio, dataFim);
-                periodoAtivo = "custom"; // Para não destacar botões
+                periodoAtivo = "custom";
             } catch (Exception e) {
-                // Em caso de data inválida, volta para o padrão "hoje"
                 relatorio = pedidoService.getRelatorio("hoje");
             }
-            
         } else {
-            // 3. Default (sem parâmetros)
             relatorio = pedidoService.getRelatorio("hoje");
         }
 
         model.addAttribute("relatorio", relatorio);
         model.addAttribute("periodoAtivo", periodoAtivo);
-        
-        // Passa as datas de volta para os inputs
         model.addAttribute("dataInicio", dataInicio); 
         model.addAttribute("dataFim", dataFim);
-        
         return "relatorios";
     }
     
@@ -160,11 +135,9 @@ public class PagesController {
     @GetMapping("/pedidos/editar/{id}")
     public String mostrarFormEditarPedido(@PathVariable Long id, Model model,
                                           @RequestParam(name = "editItemId", required = false) Long editItemId) {
-        
         model.addAttribute("pedido", pedidoService.buscarCompletoParaEdicao(id));
         model.addAttribute("produtos", produtoService.listarProdutos());
         model.addAttribute("editItemId", editItemId); 
-        
         return "form-editar-pedido"; 
     }
     
@@ -187,9 +160,15 @@ public class PagesController {
     public String atualizarItemDoPedido(@RequestParam Long pedidoId,
                                         @RequestParam Long itemPedidoId,
                                         @RequestParam Integer quantidade) {
-        
         pedidoService.atualizarItemQuantidade(itemPedidoId, quantidade);
-        
+        return "redirect:/pedidos/editar/" + pedidoId;
+    }
+    
+    // === NOVO ENDPOINT PARA A TAXA DE SERVIÇO ===
+    @PostMapping("/pedidos/editar/taxa-servico")
+    public String atualizarTaxaServico(@RequestParam Long pedidoId,
+                                       @RequestParam(defaultValue = "false") boolean taxaAtiva) {
+        pedidoService.atualizarTaxaServico(pedidoId, taxaAtiva);
         return "redirect:/pedidos/editar/" + pedidoId;
     }
 }
