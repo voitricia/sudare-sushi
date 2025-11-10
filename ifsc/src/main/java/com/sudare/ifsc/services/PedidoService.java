@@ -1,7 +1,5 @@
 package com.sudare.ifsc.services;
 
-import com.sudare.ifsc.dtos.ItemPedidoDTO;
-import com.sudare.ifsc.dtos.PedidoDTO;
 import com.sudare.ifsc.dtos.RelatorioDTO;
 import com.sudare.ifsc.exceptions.NotFoundException;
 import com.sudare.ifsc.model.*;
@@ -13,7 +11,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
-import java.math.RoundingMode;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.time.OffsetDateTime;

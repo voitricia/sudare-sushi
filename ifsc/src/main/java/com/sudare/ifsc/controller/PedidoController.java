@@ -1,11 +1,8 @@
 package com.sudare.ifsc.controller;
 
-import com.sudare.ifsc.dtos.PedidoDTO;
 import com.sudare.ifsc.model.Pedido;
 import com.sudare.ifsc.model.StatusPedido;
 import com.sudare.ifsc.services.PedidoService;
-import jakarta.validation.Valid;
-import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
