@@ -8,11 +8,10 @@
 
   <div class="mt-16">
     <strong>Pedido ID:</strong> <span th:text="${pedido.id}">#00</span><br/>
-    <strong>Cliente:</strong> <span th:text="${pedido.cliente.nome}">Consumidor Final</span><br/>
-    <th:block th:if="${pedido.nomeClienteObservacao != null AND !pedido.nomeClienteObservacao.isEmpty()}">
-        <strong>Observação:</strong> 
-        <span th:text="${pedido.nomeClienteObservacao}"></span><br/>
-    </th:block>
+    
+    <strong>Cliente:</strong> 
+    <span th:text="${pedido.nomeClienteObservacao}">Nome do Cliente</span><br/>
+    
     <strong>Status:</strong> <span th:text="${pedido.status}">ABERTO</span>
   </div>
 
@@ -49,6 +48,7 @@
               <a th:href="@{/pedidos/editar/{id}(id=${pedido.id})}" class="btn btn-sm btn-ghost">Cancelar</a>
             </td>
           </th:block>
+
           <th:block th:unless="${editItemId != null AND item.id == editItemId}">
             <td style="vertical-align: middle;" th:text="${item.produto.nome}">Produto</td>
             <td style="vertical-align: middle;" th:text="${item.quantidade}">1</td>
@@ -115,7 +115,6 @@
   </div>
 
   <style>
-    /* Estilos Tom Select (para combinar com o .form-control do tema claro) */
     .ts-control {
       background: var(--panel) !important;
       color: var(--text) !important;
@@ -146,14 +145,12 @@
     .ts-control .item {
        color: var(--text) !important;
     }
-    /* Placeholder (ex: "Digite ou selecione...") */
     .ts-control input::placeholder { 
       color: var(--muted) !important; 
     }
 
-    /* Estilo para o campo de busca DENTRO do dropdown */
     .ts-dropdown .ts-input {
-      background: var(--bg) !important; /* Fundo do input (cinza claro) */
+      background: var(--bg) !important; 
       color: var(--text) !important;
       border: 1px solid var(--stroke) !important;
       border-radius: 4px;
@@ -166,6 +163,7 @@
       outline: none;
     }
   </style>
+  
   <script>
     document.addEventListener("DOMContentLoaded", () => {
       new TomSelect('#produtoId', {

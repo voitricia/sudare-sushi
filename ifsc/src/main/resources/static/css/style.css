@@ -256,11 +256,6 @@ hr {
   margin: 30px 0;
 }
 
-/* ======================================= */
-/* === ADIÇÕES PARA PÁGINA DE RELATÓRIOS === */
-/* ======================================= */
-
-/* --- Botões de Filtro (Hoje, Mês, etc.) --- */
 .filter-bar {
   display: flex;
   gap: 10px;
@@ -288,7 +283,6 @@ hr {
 }
 
 
-/* --- Cards de Stats (Faturamento, etc.) --- */
 .stats-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));

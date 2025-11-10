@@ -14,32 +14,26 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
-// === IMPORTS NOVOS ===
 import java.time.LocalDate;
 import java.time.LocalTime;
-import java.time.ZoneOffset;
-// =====================
 import java.time.OffsetDateTime;
+import java.time.ZoneOffset;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
 
 @Service
 public class PedidoService {
-    
-    // ... (Seu construtor e todos os métodos de Pedido, Item, etc. continuam aqui) ...
-    // ... (listar, buscar, criar, atualizarStatus, buscarFilaPreparo, etc...) ...
-    
+
     private final PedidoRepository pedidoRepository;
-    private final ClienteRepository clienteRepository;
+    // private final ClienteRepository clienteRepository; // REMOVIDO
     private final ProdutoRepository produtoRepository;
     private final ItemPedidoRepository itemPedidoRepository;
 
+    // ATUALIZADO: Construtor sem ClienteRepository
     public PedidoService(PedidoRepository pedidoRepository,
-                         ClienteRepository clienteRepository,
                          ProdutoRepository produtoRepository,
                          ItemPedidoRepository itemPedidoRepository) {
         this.pedidoRepository = pedidoRepository;
-        this.clienteRepository = clienteRepository;
         this.produtoRepository = produtoRepository;
         this.itemPedidoRepository = itemPedidoRepository;
     }
@@ -57,24 +51,16 @@ public class PedidoService {
             .orElseThrow(() -> new NotFoundException("Pedido não encontrado"));
     }
 
+    /**
+     * ATENÇÃO: Este método da API (PedidoController) está quebrado
+     * pois o PedidoDTO espera um 'clienteId' que não existe mais.
+     * Precisamos refatorar o PedidoDTO e o PedidoController (API) se você ainda usa eles.
+     */
     @Transactional
     public Pedido criar(PedidoDTO dto){
-        Cliente cliente = clienteRepository.findById(dto.clienteId()).orElseThrow(() -> new NotFoundException("Cliente não encontrado"));
-        Pedido pedido = new Pedido();
-        pedido.setCliente(cliente);
-        
-        if (dto.itens() != null) {
-            for(ItemPedidoDTO itemDto : dto.itens()){
-                Produto produto = produtoRepository.findById(itemDto.produtoId()).orElseThrow(() -> new NotFoundException("Produto não encontrado: ID " + itemDto.produtoId()));
-                ItemPedido item = new ItemPedido();
-                item.setProduto(produto);
-                item.setQuantidade(itemDto.quantidade());
-                item.setPrecoUnitario(itemDto.precoUnitario()); 
-                pedido.adicionarItem(item);
-            }
-        }
-        recalcularTotalPedido(pedido);
-        return pedidoRepository.save(pedido);
+        // A lógica antiga que usava 'dto.clienteId()' está quebrada.
+        // Vamos lançar um erro para evitar confusão.
+        throw new UnsupportedOperationException("O método 'criar(PedidoDTO)' precisa ser refatorado após a remoção do Cliente.");
     }
 
     @Transactional
@@ -91,28 +77,30 @@ public class PedidoService {
     }
     @Transactional(readOnly = true)
     public List<Pedido> buscarUltimosPedidos(int limite) {
-        Pageable pageable = Pageable.unpaged(); // Ajuste se precisar de paginação
+        Pageable pageable = Pageable.unpaged();
         if (limite > 0) {
             pageable = PageRequest.of(0, limite, Sort.by("criadoEm").descending());
         }
         return pedidoRepository.findAllWithCliente(pageable);
     }
 
+    /**
+     * ATUALIZADO: Método muito mais simples!
+     * Não precisa mais buscar "Consumidor Final".
+     */
     @Transactional
     public Pedido criarNovoPedido(String nomeObservacao) {
-        Cliente clientePadrao = clienteRepository.findByNome("Consumidor Final")
-                .orElseThrow(() -> new RuntimeException("Cliente 'Consumidor Final' não encontrado."));
-
         Pedido pedido = new Pedido();
-        pedido.setCliente(clientePadrao);
-        pedido.setNomeClienteObservacao(nomeObservacao);
+        pedido.setNomeClienteObservacao(nomeObservacao); // Salva a observação
         pedido.setStatus(StatusPedido.ABERTO);
         pedido.setTotal(BigDecimal.ZERO);
 
         return pedidoRepository.save(pedido);
     }
     
-    @Transactional
+    // ... (adicionarItemAoPedido, removerItemDoPedido, atualizarItemQuantidade, recalcularTotalPedido) ...
+    // ... (Estes métodos não mudam) ...
+     @Transactional
     public Pedido adicionarItemAoPedido(Long pedidoId, Long produtoId, Integer quantidade) {
         Pedido pedido = buscarCompletoParaEdicao(pedidoId);
         Produto produto = produtoRepository.findById(produtoId)
@@ -168,7 +156,6 @@ public class PedidoService {
     }
 
     private void recalcularTotalPedido(Pedido pedido) {
-        // ... (seu método recalcularTotalPedido) ...
         BigDecimal total = BigDecimal.ZERO;
         
         if (pedido.getItens() == null || pedido.getItens().isEmpty()) {
@@ -190,18 +177,11 @@ public class PedidoService {
              pedidoRepository.save(pedido);
         }
     }
-
-    // ==========================================================
-    // === MÉTODOS DE RELATÓRIO ATUALIZADOS ===
-    // ==========================================================
     
-    /**
-     * NOVO MÉTODO: Gera relatório por datas customizadas
-     */
+    // --- Métodos de Relatório (Não mudam) ---
+
     @Transactional(readOnly = true)
     public RelatorioDTO getRelatorio(LocalDate dataInicio, LocalDate dataFim) {
-        // Converte para OffsetDateTime (início do dia e fim do dia)
-        // Usando ZoneOffset.UTC para consistência. Mude para ZoneOffset.systemDefault() se preferir a zona do servidor.
         OffsetDateTime inicio = dataInicio.atStartOfDay().atOffset(ZoneOffset.UTC);
         OffsetDateTime fim = dataFim.atTime(LocalTime.MAX).atOffset(ZoneOffset.UTC);
         
@@ -210,12 +190,8 @@ public class PedidoService {
         return calcularStats(pedidos);
     }
     
-    /**
-     * MÉTODO ANTIGO: Agora usado para filtros rápidos (Hoje, Semana, etc.)
-     */
     @Transactional(readOnly = true)
     public RelatorioDTO getRelatorio(String periodo) {
-        // Usando UTC para consistência. Mude para ZoneId.systemDefault() se preferir a zona do servidor.
         OffsetDateTime fim = OffsetDateTime.now(ZoneOffset.UTC);
         OffsetDateTime inicio;
         
@@ -242,16 +218,14 @@ public class PedidoService {
         return calcularStats(pedidos);
     }
 
-    /**
-     * Método auxiliar (sem alterações)
-     */
     private RelatorioDTO calcularStats(List<Pedido> pedidos) {
         BigDecimal faturamento = pedidos.stream()
                                         .map(Pedido::getTotal)
                                         .reduce(BigDecimal.ZERO, BigDecimal::add);
 
         Long numPedidos = (long) pedidos.size();
-
+        
+        // Removido Ticket Médio
         return new RelatorioDTO(faturamento, numPedidos, pedidos);
     }
 }
