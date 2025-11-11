@@ -2,15 +2,17 @@
 /* === NOVOS ESTILOS (TEMA CLARO) === */
 /* ======================================= */
 
-/* --- Variáveis de Cor --- */
+/* --- Variáveis de Cor (do protótipo) --- */
 :root {
-  --bg: #F9FAFB;
-  --panel: #FFFFFF;
-  --text: #1F2937;
-  --muted: #6B7280;
-  --stroke: #E5E7EB;
-  --brand: #E53E3E;
-  --brand-text: #FFFFFF;
+  --bg: #F9FAFB;      /* Fundo da página (cinza bem claro) */
+  --panel: #FFFFFF;   /* Fundo dos painéis, tabelas, inputs */
+  --text: #1F2937;    /* Cor do texto principal (preto suave) */
+  --muted: #6B7280;   /* Cor do texto secundário (cinza) */
+  --stroke: #E5E7EB;  /* Cor das bordas */
+  --brand: #E53E3E;   /* Cor principal (vermelho/rosa do botão) */
+  --brand-text: #FFFFFF; /* Texto do botão principal */
+  
+  /* Cores de Status (mantidas) */
   --danger: #DC2626;
   --warning: #F59E0B;
   --success: #10B981;
@@ -18,6 +20,7 @@
   --primary: #6f42c1;
 }
 
+/* --- Reset Básico --- */
 * {
   box-sizing: border-box;
 }
@@ -29,30 +32,24 @@ body {
   margin: 0;
   padding: 0;
   -webkit-font-smoothing: antialiased;
+}
 
-  display: flex;
-  flex-direction: column;
-  min-height: 100vh;
+/* --- Layout e Header --- */
+.container {
+  max-width: 1100px;
+  margin: 30px auto;
+  padding: 0 20px;
 }
 
 .topbar {
   background-color: var(--panel);
   border-bottom: 1px solid var(--stroke);
-  padding: 0 5%; 
+  padding: 0 40px;
   display: flex;
   justify-content: space-between;
   align-items: center;
   height: 70px;
   box-shadow: 0 1px 3px rgba(0,0,0,0.02), 0 1px 2px rgba(0,0,0,0.04);
-}
-
-.container {
-  width: 100%;
-  max-width: none;
-  margin: 40px 0;
-  padding: 0 5%;
-  
-  flex: 1; 
 }
 
 .brand {
@@ -72,6 +69,7 @@ body {
   font-size: 0.9em;
 }
 
+/* Menu Ativo (como no protótipo) */
 .topnav a.is-active {
   background-color: var(--text);
   color: var(--panel);
@@ -84,7 +82,7 @@ body {
   font-size: 0.9em;
 }
 
-/* --- Botões --- */
+/* --- Botões (como no protótipo) --- */
 .btn {
   background-color: var(--brand);
   color: var(--brand-text);
@@ -97,9 +95,16 @@ body {
   display: inline-block;
   font-size: 0.9em;
 }
-.btn:hover { opacity: 0.9; }
-.btn-sm { padding: 7px 12px; font-size: 0.85em; }
+.btn:hover {
+  opacity: 0.9;
+}
 
+.btn-sm {
+  padding: 7px 12px;
+  font-size: 0.85em;
+}
+
+/* Botão Secundário (Editar/Cancelar) */
 .btn-ghost {
   background-color: var(--panel);
   color: var(--text);
@@ -110,6 +115,9 @@ body {
   border-color: var(--stroke);
 }
 
+/* ======================================= */
+/* === ADICIONADO: Botões Ghost Coloridos === */
+/* ======================================= */
 .btn-ghost-danger {
   background-color: transparent;
   color: var(--danger);
@@ -120,7 +128,9 @@ body {
   font-weight: 600;
   cursor: pointer;
 }
-.btn-ghost-danger:hover { background-color: rgba(220, 38, 38, 0.1); }
+.btn-ghost-danger:hover {
+  background-color: rgba(220, 38, 38, 0.1); /* Fundo vermelho leve */
+}
 
 .btn-ghost-success {
   background-color: transparent;
@@ -132,7 +142,13 @@ body {
   font-weight: 600;
   cursor: pointer;
 }
-.btn-ghost-success:hover { background-color: rgba(16, 185, 129, 0.1); }
+.btn-ghost-success:hover {
+  background-color: rgba(16, 185, 129, 0.1); /* Fundo verde leve */
+}
+/* ======================================= */
+/* === FIM DAS ADIÇÕES === */
+/* ======================================= */
+
 
 /* --- Formulários --- */
 .form-group { margin-bottom: 15px; }
@@ -161,10 +177,15 @@ body {
 .form-row {
   display: flex;
   gap: 15px;
-  align-items: flex-end;
+  align-items: flex-end; /* Alinha na base */
 }
-.form-row .form-group { flex: 1; }
-.form-row button { height: 48px; }
+.form-row .form-group {
+  flex: 1; /* Faz os grupos de formulário crescerem */
+}
+.form-row button {
+  height: 48px; /* Mesma altura dos inputs */
+}
+
 
 /* --- Tabelas --- */
 .table-wrap {
@@ -194,22 +215,25 @@ body {
 .table tbody tr:not(:last-child) {
   border-bottom: 1px solid var(--stroke);
 }
-.table td form { margin-bottom: 0; }
+.table td form {
+  margin-bottom: 0;
+}
 
-/* --- Badges --- */
+/* --- Badges de Status (Mantidas) --- */
 .badge {
   padding: 4px 10px;
   border-radius: 20px;
   font-weight: 700;
   font-size: 0.8em;
-  background-color: #E5E7EB;
-  color: #6B7280;
+  background-color: #E5E7EB; /* Fundo cinza padrão */
+  color: #6B7280;      /* Texto cinza padrão */
 }
 .badge-warning { background-color: var(--warning); color: #FFF; }
 .badge-success { background-color: var(--success); color: #FFF; }
 .badge-danger  { background-color: var(--danger);  color: #FFF; }
 .badge-info    { background-color: var(--info);    color: #FFF; }
 .badge-primary { background-color: var(--primary); color: #FFF; }
+
 
 /* --- Outros --- */
 .section-title, .section-subtitle {
@@ -237,6 +261,7 @@ hr {
   gap: 10px;
   margin-bottom: 25px;
 }
+
 .btn-filter {
   background-color: var(--panel);
   color: var(--muted);
@@ -248,7 +273,9 @@ hr {
   text-decoration: none;
   font-size: 0.9em;
 }
-.btn-filter:hover { background-color: var(--bg); }
+.btn-filter:hover {
+  background-color: var(--bg);
+}
 .btn-filter.is-active {
   background-color: var(--text);
   color: var(--panel);
@@ -262,6 +289,7 @@ hr {
   gap: 20px;
   margin-bottom: 30px;
 }
+
 .stat-card {
   background-color: var(--panel);
   border: 1px solid var(--stroke);
@@ -269,6 +297,7 @@ hr {
   padding: 20px 25px;
   box-shadow: 0 1px 3px rgba(0,0,0,0.02), 0 1px 2px rgba(0,0,0,0.04);
 }
+
 .stat-card span {
   display: block;
   font-size: 0.9em;
@@ -276,6 +305,7 @@ hr {
   color: var(--muted);
   margin-bottom: 8px;
 }
+
 .stat-card strong {
   display: block;
   font-size: 2.2em;
