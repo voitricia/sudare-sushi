@@ -32,6 +32,9 @@ public class Pedido {
     @Column(nullable = false)
     private BigDecimal total = BigDecimal.ZERO;
 
+    @Column(nullable = false)
+    private boolean taxaServico = false;
+
     @OneToMany(mappedBy = "pedido", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     private List<ItemPedido> itens = new ArrayList<>();
 
@@ -41,7 +44,7 @@ public class Pedido {
 
     @UpdateTimestamp
     @Column(nullable = false)
-    private OffsetDateTime atualizadoEm;
+    private OffsetDateTime atualizadoEm; 
 
     // --- Métodos Auxiliares ---
 
@@ -55,9 +58,20 @@ public class Pedido {
         item.setPedido(null);
     }
 
-    // --- Getters e Setters ---
-    // (Getters e Setters de Cliente foram removidos)
+    // Calcula o subtotal (soma dos itens sem taxa)
+    public BigDecimal getSubtotalItens() {
+        if (itens == null) return BigDecimal.ZERO;
+        return itens.stream()
+                .map(ItemPedido::getSubtotal)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+    }
 
+    // Calcula apenas o valor da taxa para exibição
+    public BigDecimal getValorTaxaServico() {
+        if (!taxaServico) return BigDecimal.ZERO;
+        return getSubtotalItens().multiply(new BigDecimal("0.10"));
+    }
+    
     public Long getId() {
         return id;
     }
@@ -98,19 +112,27 @@ public class Pedido {
         this.itens = itens;
     }
 
+    public void setCriadoEm(OffsetDateTime criadoEm) { 
+        this.criadoEm = criadoEm; 
+    }
+
     public OffsetDateTime getCriadoEm() {
         return criadoEm;
     }
 
-    public void setCriadoEm(OffsetDateTime criadoEm) {
-        this.criadoEm = criadoEm;
+    public OffsetDateTime getAtualizadoEm() { 
+        return atualizadoEm; 
     }
 
-    public OffsetDateTime getAtualizadoEm() {
-        return atualizadoEm;
+    public void setAtualizadoEm(OffsetDateTime atualizadoEm) { 
+        this.atualizadoEm = atualizadoEm; 
     }
 
-    public void setAtualizadoEm(OffsetDateTime atualizadoEm) {
-        this.atualizadoEm = atualizadoEm;
+    public boolean isTaxaServico() { 
+        return taxaServico; 
     }
+
+    public void setTaxaServico(boolean taxaServico) { 
+        this.taxaServico = taxaServico; 
+    }   
 }

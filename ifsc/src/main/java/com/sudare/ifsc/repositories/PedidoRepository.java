@@ -43,6 +43,8 @@ public interface PedidoRepository extends JpaRepository<Pedido, Long> {
      */
     List<Pedido> findAllByStatusOrderByCriadoEmDesc(StatusPedido status, Pageable pageable);
 
+    List<Pedido> findAllByStatusIn(List<StatusPedido> statuses);
+
     /**
      * Busca pedidos por VÁRIOS status, ordenado por data e com paginação
      */

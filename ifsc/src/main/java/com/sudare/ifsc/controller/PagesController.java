@@ -30,26 +30,19 @@ public class PagesController {
         this.produtoService = produtoService;
         this.pedidoService = pedidoService;
     }
-    
+
     // ==========================================================
-    // === MÉTODO HOME ATUALIZADO PARA O FILTRO <SELECT> ===
+    // === MÉTODO HOME CORRIGIDO (MANTENDO O FILTRO) ===
     // ==========================================================
     @GetMapping({"/", "/index"})
     public String home(Model model,
                        @RequestParam(name = "statusEditId", required = false) Long statusEditId,
-                       // Recebe o filtro do dropdown
-                       @RequestParam(name = "statusFiltro", required = false) String statusFiltro) { 
-        
-        // 1. Usa o método do service com o filtro
+                       @RequestParam(name = "statusFiltro", required = false) String statusFiltro) {
+
         model.addAttribute("ultimosPedidos", pedidoService.buscarPedidosHome(statusFiltro));
-        
-        // 2. Passa o ID para a edição na linha (como antes)
-        model.addAttribute("statusEditId", statusEditId); 
-        
-        // 3. Passa o filtro ativo de volta para o HTML (para o <select> ficar correto)
+        model.addAttribute("statusEditId", statusEditId);
         String filtroAtivo = (statusFiltro == null || statusFiltro.isEmpty()) ? "TODOS" : statusFiltro;
         model.addAttribute("statusFiltroAtivo", filtroAtivo);
-        
         return "index";
     }
 
@@ -59,12 +52,11 @@ public class PagesController {
                                         // Adicionado para manter o filtro ao atualizar status
                                         @RequestParam(name = "statusFiltro", required = false) String statusFiltro) {
         pedidoService.atualizarStatus(id, status);
-        
+
         String filtro = (statusFiltro == null || statusFiltro.isEmpty()) ? "TODOS" : statusFiltro;
         // Retorna para a home, mantendo o filtro que estava ativo
         return "redirect:/?statusFiltro=" + filtro;
     }
-
 
     // --- (Resto do controller sem alteração) ---
     @GetMapping("/relatorios")
@@ -72,7 +64,6 @@ public class PagesController {
                              @RequestParam(name = "periodo", required = false) String periodo,
                              @RequestParam(name = "dataInicio", required = false) String dataInicioStr,
                              @RequestParam(name = "dataFim", required = false) String dataFimStr) {
-        
         RelatorioDTO relatorio;
         String periodoAtivo = "hoje";
         LocalDate dataInicio = null;
@@ -93,12 +84,10 @@ public class PagesController {
         } else {
             relatorio = pedidoService.getRelatorio("hoje");
         }
-
         model.addAttribute("relatorio", relatorio);
         model.addAttribute("periodoAtivo", periodoAtivo);
-        model.addAttribute("dataInicio", dataInicio); 
+        model.addAttribute("dataInicio", dataInicio);
         model.addAttribute("dataFim", dataFim);
-        
         return "relatorios";
     }
 
@@ -120,7 +109,7 @@ public class PagesController {
         model.addAttribute("produto", dto);
         return "form-produto";
     }
-    
+
     @GetMapping("/produtos/editar/{id}")
     public String mostrarFormEditarProduto(@PathVariable Long id, Model model) {
         model.addAttribute("produto", produtoService.buscarDTO(id));
@@ -128,7 +117,7 @@ public class PagesController {
     }
 
     @PostMapping("/produtos/salvar")
-    public String salvarProduto(@Valid @ModelAttribute("produto") ProdutoDTO dto, 
+    public String salvarProduto(@Valid @ModelAttribute("produto") ProdutoDTO dto,
                                 BindingResult bindingResult) {
         if (bindingResult.hasErrors()) {
             return "form-produto";
@@ -143,29 +132,27 @@ public class PagesController {
 
     @GetMapping("/pedidos/novo")
     public String mostrarFormNovoPedido() {
-        return "form-pedido"; 
+        return "form-pedido";
     }
 
     @PostMapping("/pedidos/criar")
     public String criarPedido(@RequestParam String nomeObservacao) {
-        if(nomeObservacao == null || nomeObservacao.trim().isEmpty()) {
+        if (nomeObservacao == null || nomeObservacao.trim().isEmpty()) {
             nomeObservacao = "Pedido Balcão";
         }
         Pedido pedidoSalvo = pedidoService.criarNovoPedido(nomeObservacao);
         return "redirect:/pedidos/editar/" + pedidoSalvo.getId();
     }
-    
+
     @GetMapping("/pedidos/editar/{id}")
     public String mostrarFormEditarPedido(@PathVariable Long id, Model model,
                                           @RequestParam(name = "editItemId", required = false) Long editItemId) {
-        
         model.addAttribute("pedido", pedidoService.buscarCompletoParaEdicao(id));
         model.addAttribute("produtos", produtoService.listarProdutos());
-        model.addAttribute("editItemId", editItemId); 
-        
-        return "form-editar-pedido"; 
+        model.addAttribute("editItemId", editItemId);
+        return "form-editar-pedido";
     }
-    
+
     @PostMapping("/pedidos/editar/adicionar-item")
     public String adicionarItemAoPedido(@RequestParam Long pedidoId,
                                         @RequestParam Long produtoId,
@@ -173,7 +160,7 @@ public class PagesController {
         pedidoService.adicionarItemAoPedido(pedidoId, produtoId, quantidade);
         return "redirect:/pedidos/editar/" + pedidoId;
     }
-    
+
     @PostMapping("/pedidos/editar/remover-item")
     public String removerItemDoPedido(@RequestParam Long pedidoId,
                                       @RequestParam Long itemPedidoId) {
@@ -185,8 +172,15 @@ public class PagesController {
     public String atualizarItemDoPedido(@RequestParam Long pedidoId,
                                         @RequestParam Long itemPedidoId,
                                         @RequestParam Integer quantidade) {
-        
         pedidoService.atualizarItemQuantidade(itemPedidoId, quantidade);
+        return "redirect:/pedidos/editar/" + pedidoId;
+    }
+
+    // === NOVO ENDPOINT PARA A TAXA DE SERVIÇO ===
+    @PostMapping("/pedidos/editar/taxa-servico")
+    public String atualizarTaxaServico(@RequestParam Long pedidoId,
+                                       @RequestParam(defaultValue = "false") boolean taxaAtiva) {
+        pedidoService.atualizarTaxaServico(pedidoId, taxaAtiva);
         return "redirect:/pedidos/editar/" + pedidoId;
     }
 }

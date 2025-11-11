@@ -11,6 +11,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.time.OffsetDateTime;
@@ -69,6 +70,17 @@ public class PedidoService {
      * Busca os pedidos para a Home, com filtro de status.
      */
     @Transactional(readOnly = true)
+    public List<Pedido> buscarFilaPreparo() {
+        // CORRIGIDO: Chamando o método 'findAllByStatusIn' (sem Ordenação/Paginação)
+        return pedidoRepository.findAllByStatusIn(
+            List.of(StatusPedido.EM_PREPARO, StatusPedido.PRONTO)
+        );
+    }
+    
+    // ==========================================================
+    // === MÉTODO CORRIGIDO (MERGE DE 'buscarUltimosPedidos' E 'buscarPedidosHome') ===
+    // ==========================================================
+    @Transactional(readOnly = true) // Adicionada anotação que faltava
     public List<Pedido> buscarPedidosHome(String statusFiltro) {
         Pageable pageable = PageRequest.of(0, 20, Sort.by("criadoEm").descending());
         
@@ -151,27 +163,41 @@ public class PedidoService {
         recalcularTotalPedido(item.getPedido());
     }
 
+    // === NOVO MÉTODO PARA ALTERNAR A TAXA ===
+    @Transactional
+    public void atualizarTaxaServico(Long pedidoId, boolean ativa) {
+        Pedido pedido = buscarCompletoParaEdicao(pedidoId);
+        pedido.setTaxaServico(ativa);
+        recalcularTotalPedido(pedido); // Recalcula e salva
+    }
+
+    // === MÉTODO RECALCULAR ATUALIZADO ===
+
     private void recalcularTotalPedido(Pedido pedido) {
-        BigDecimal total = BigDecimal.ZERO;
-        
-        if (pedido.getItens() == null || pedido.getItens().isEmpty()) {
-             if (pedido.getId() == null) {
-                 pedido.setTotal(BigDecimal.ZERO);
-                 return;
-             }
-             Pedido pedidoComItens = buscarCompletoParaEdicao(pedido.getId());
-             for (ItemPedido i : pedidoComItens.getItens()) {
-                 total = total.add(i.getSubtotal());
-             }
-             pedidoComItens.setTotal(total);
-             pedidoRepository.save(pedidoComItens);
-        } else {
-             for (ItemPedido i : pedido.getItens()) {
-                 total = total.add(i.getSubtotal());
-             }
-             pedido.setTotal(total);
-             pedidoRepository.save(pedido);
+        // Garante que temos os itens atualizados
+        Pedido pedidoAtualizado = pedido;
+        if (pedido.getId() != null) {
+            // Recarrega para garantir que não estamos usando dados obsoletos da sessão
+             pedidoAtualizado = pedidoRepository.findByIdCompleto(pedido.getId()).orElse(pedido);
         }
+
+        BigDecimal subtotal = BigDecimal.ZERO;
+        if (pedidoAtualizado.getItens() != null) {
+            for (ItemPedido i : pedidoAtualizado.getItens()) {
+                subtotal = subtotal.add(i.getSubtotal());
+            }
+        }
+        
+        // Aplica os 10% se a taxa estiver ativa
+        BigDecimal totalFinal = subtotal;
+        if (pedidoAtualizado.isTaxaServico()) {
+            BigDecimal valorTaxa = subtotal.multiply(new BigDecimal("0.10"));
+            totalFinal = subtotal.add(valorTaxa);
+        }
+
+        pedidoAtualizado.setTotal(totalFinal.setScale(2, RoundingMode.HALF_EVEN));
+        pedidoRepository.save(pedidoAtualizado);
+        
     }
     
     @Transactional(readOnly = true)
@@ -208,9 +234,7 @@ public class PedidoService {
     }
 
     private RelatorioDTO calcularStats(List<Pedido> pedidos) {
-        BigDecimal faturamento = pedidos.stream()
-                                        .map(Pedido::getTotal)
-                                        .reduce(BigDecimal.ZERO, BigDecimal::add);
+        BigDecimal faturamento = pedidos.stream().map(Pedido::getTotal).reduce(BigDecimal.ZERO, BigDecimal::add);
         Long numPedidos = (long) pedidos.size();
         return new RelatorioDTO(faturamento, numPedidos, pedidos);
     }
