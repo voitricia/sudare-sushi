@@ -8,11 +8,8 @@
 
   <div class="mt-16">
     <strong>Pedido ID:</strong> <span th:text="${pedido.id}">#00</span><br/>
-    <strong>Cliente:</strong> <span th:text="${pedido.cliente.nome}">Consumidor Final</span><br/>
-    <th:block th:if="${pedido.nomeClienteObservacao != null AND !pedido.nomeClienteObservacao.isEmpty()}">
-        <strong>Observação:</strong> 
-        <span th:text="${pedido.nomeClienteObservacao}"></span><br/>
-    </th:block>
+    <strong>Cliente:</strong> 
+    <span th:text="${pedido.nomeClienteObservacao}">Nome do Cliente</span><br/>
     <strong>Status:</strong> <span th:text="${pedido.status}">ABERTO</span>
   </div>
 
@@ -111,7 +108,7 @@
     <div class="form-group" style="flex: 3;">
       <label for="produtoId">Produto</label>
       
-      <select id="produtoId" name="produtoId" class="form-control" placeholder="Digite ou selecione um produto...">
+      <select id="produtoId" name="produtoId" placeholder="Digite ou selecione um produto...">
         <option value="" selected>Digite ou selecione um produto...</option>
         
         <option th:each="prod : ${produtos}"
@@ -138,31 +135,31 @@
   <style>
     /* Estilos Tom Select (mantidos) */
     .ts-control {
-      background: var(--panel) !important;
-      color: var(--text) !important;
-      border: 1px solid var(--stroke) !important;
+      background: #FFFFFF !important;
+      color: #1F2937 !important;
+      border: 1px solid #E5E7EB !important;
       border-radius: 8px !important;
       padding: 10px 12px !important;
       height: 48px; 
     }
     .ts-control.focus {
-      border-color: var(--brand) !important; 
+      border-color: #E53E3E !important; 
       box-shadow: 0 0 0 3px rgba(229, 62, 62, 0.1) !important;
       outline: none !important;
     }
     .ts-dropdown {
-      background: var(--panel) !important; 
-      border: 1px solid var(--stroke) !important;
+      background: #FFFFFF !important; 
+      border: 1px solid #E5E7EB !important;
       border-radius: 8px !important;
       box-shadow: 0 4px 6px rgba(0,0,0,0.05);
     }
     .ts-option {
-      color: var(--text) !important; 
+      color: #1F2937 !important; 
       padding: 10px 12px !important;
     }
     .ts-option.active, .ts-option:hover {
-      background: var(--brand) !important; 
-      color: var(--brand-text) !important;
+      background: #E53E3E !important; 
+      color: #FFFFFF !important;
     }
     .ts-control .item { color: var(--text) !important; }
     .ts-control input::placeholder { color: var(--muted) !important; }
@@ -170,20 +167,32 @@
       background: var(--bg) !important;
       color: var(--text) !important;
       border: 1px solid var(--stroke) !important;
+    .ts-control .item {
+       color: #1F2937 !important;
+    }
+    .ts-control input::placeholder { 
+      color: #6B7280 !important;
+    }
+    .ts-dropdown .ts-input {
+      background: #F9FAFB !important; 
+      color: #1F2937 !important;
+      border: 1px solid #E5E7EB !important;
       border-radius: 4px;
       margin: 8px;
       width: calc(100% - 16px);
       padding: 8px 10px;
     }
     .ts-dropdown .ts-input:focus {
-      border-color: var(--brand) !important;
+      border-color: #E53E3E !important;
       outline: none;
     }
   </style>
+  
   <script>
     document.addEventListener("DOMContentLoaded", () => {
       new TomSelect('#produtoId', {
         plugins: ['dropdown_input'],
+        plugins: ['dropdown_input'], 
         create: false,
         sortField: { field: "text", direction: "asc" }
       });

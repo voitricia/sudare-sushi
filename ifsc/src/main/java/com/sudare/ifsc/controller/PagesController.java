@@ -31,6 +31,9 @@ public class PagesController {
         this.pedidoService = pedidoService;
     }
     
+    // ==========================================================
+    // === MÉTODO HOME ATUALIZADO PARA O FILTRO <SELECT> ===
+    // ==========================================================
     @GetMapping({"/", "/index"})
     public String home(Model model,
                        @RequestParam(name = "statusEditId", required = false) Long statusEditId) {
@@ -44,8 +47,37 @@ public class PagesController {
     public String cardapio(Model model) {
         model.addAttribute("produtos", produtoService.listarProdutos());
         return "cardapio";
+                       @RequestParam(name = "statusEditId", required = false) Long statusEditId,
+                       // Recebe o filtro do dropdown
+                       @RequestParam(name = "statusFiltro", required = false) String statusFiltro) { 
+        
+        // 1. Usa o método do service com o filtro
+        model.addAttribute("ultimosPedidos", pedidoService.buscarPedidosHome(statusFiltro));
+        
+        // 2. Passa o ID para a edição na linha (como antes)
+        model.addAttribute("statusEditId", statusEditId); 
+        
+        // 3. Passa o filtro ativo de volta para o HTML (para o <select> ficar correto)
+        String filtroAtivo = (statusFiltro == null || statusFiltro.isEmpty()) ? "TODOS" : statusFiltro;
+        model.addAttribute("statusFiltroAtivo", filtroAtivo);
+        
+        return "index";
     }
 
+    // --- Método de Atualizar Status (para manter o filtro) ---
+    @PostMapping("/pedidos/atualizar-status")
+    public String atualizarPedidoStatus(@RequestParam Long id, @RequestParam StatusPedido status,
+                                        // Adicionado para manter o filtro ao atualizar status
+                                        @RequestParam(name = "statusFiltro", required = false) String statusFiltro) {
+        pedidoService.atualizarStatus(id, status);
+        
+        String filtro = (statusFiltro == null || statusFiltro.isEmpty()) ? "TODOS" : statusFiltro;
+        // Retorna para a home, mantendo o filtro que estava ativo
+        return "redirect:/?statusFiltro=" + filtro;
+    }
+
+
+    // --- (Resto do controller sem alteração) ---
     @GetMapping("/relatorios")
     public String relatorios(Model model,
                              @RequestParam(name = "periodo", required = false) String periodo,
@@ -78,17 +110,17 @@ public class PagesController {
         model.addAttribute("dataFim", dataFim);
         return "relatorios";
     }
-    
+
+    @GetMapping("/cardapio")
+    public String cardapio(Model model) {
+        model.addAttribute("produtos", produtoService.listarProdutos());
+        return "cardapio";
+    }
+
     @PostMapping("/cardapio/atualizar-ativo")
     public String atualizarProdutoAtivo(@RequestParam Long id, @RequestParam boolean ativo) {
         produtoService.atualizarAtivo(id, ativo);
         return "redirect:/cardapio";
-    }
-
-    @PostMapping("/pedidos/atualizar-status")
-    public String atualizarPedidoStatus(@RequestParam Long id, @RequestParam StatusPedido status) {
-        pedidoService.atualizarStatus(id, status);
-        return "redirect:/";
     }
 
     @GetMapping("/produtos/novo")

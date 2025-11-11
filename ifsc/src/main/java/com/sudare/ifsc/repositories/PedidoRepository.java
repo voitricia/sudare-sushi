@@ -14,28 +14,12 @@ import java.util.Optional;
 
 public interface PedidoRepository extends JpaRepository<Pedido, Long> {
 
-    /**
-     * Método para buscar Pedido com Itens (usado em 'buscarCompletoParaEdicao')
-     */
+    // Para a página de Edição
     @Query("SELECT p FROM Pedido p LEFT JOIN FETCH p.itens WHERE p.id = :id")
     Optional<Pedido> findByIdCompleto(@Param("id") Long id);
 
-    /**
-     * Método para 'buscarUltimosPedidos'
-     */
-    @Query("SELECT p FROM Pedido p JOIN FETCH p.cliente")
-    List<Pedido> findAllWithCliente(Pageable pageable);
-
-    /**
-     * Método para 'buscarFilaPreparo' (usando EM_PREPARO e PRONTO)
-     */
-    @Query("SELECT p FROM Pedido p JOIN FETCH p.cliente WHERE p.status IN :statuses")
-    List<Pedido> findAllByStatusInWithCliente(@Param("statuses") Collection<StatusPedido> statuses);
-
-    /**
-     * Método para Relatório: Busca pedidos FINALIZADOS num intervalo de datas.
-     */
-    @Query("SELECT p FROM Pedido p JOIN FETCH p.cliente c " +
+    // Para os Relatórios
+    @Query("SELECT p FROM Pedido p " +
            "WHERE p.status = :status AND p.criadoEm BETWEEN :inicio AND :fim " +
            "ORDER BY p.criadoEm DESC")
     List<Pedido> findPedidosPorStatusEData(
@@ -44,11 +28,24 @@ public interface PedidoRepository extends JpaRepository<Pedido, Long> {
         @Param("fim") OffsetDateTime fim
     );
 
-    /**
-     * Método para Relatório: Busca TODOS os pedidos FINALIZADOS (para o filtro "Tudo").
-     */
-    @Query("SELECT p FROM Pedido p JOIN FETCH p.cliente c " +
+    // Para os Relatórios
+    @Query("SELECT p FROM Pedido p " +
            "WHERE p.status = :status ORDER BY p.criadoEm DESC")
     List<Pedido> findAllPedidosPorStatus(@Param("status") StatusPedido status);
+
     
+    // ==========================================================
+    // === MÉTODOS NOVOS QUE CORRIGEM O ERRO (image_954616.png) ===
+    // ==========================================================
+    
+    /**
+     * Busca pedidos por UM status, ordenado por data e com paginação
+     */
+    List<Pedido> findAllByStatusOrderByCriadoEmDesc(StatusPedido status, Pageable pageable);
+
+    /**
+     * Busca pedidos por VÁRIOS status, ordenado por data e com paginação
+     */
+    List<Pedido> findAllByStatusInOrderByCriadoEmDesc(Collection<StatusPedido> statuses, Pageable pageable);
+
 }

@@ -1,11 +1,8 @@
 package com.sudare.ifsc.controller;
 
-import com.sudare.ifsc.dtos.PedidoDTO;
 import com.sudare.ifsc.model.Pedido;
 import com.sudare.ifsc.model.StatusPedido;
 import com.sudare.ifsc.services.PedidoService;
-import jakarta.validation.Valid;
-import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
@@ -19,6 +16,7 @@ public class PedidoController {
 
     @GetMapping
     public List<Pedido> listar(){ 
+        // Agora o service.listar() será encontrado
         return service.listar(); 
     }
 
@@ -27,14 +25,19 @@ public class PedidoController {
         return service.buscar(id); 
     }
 
+    /* ==========================================================
+    === CORREÇÃO: Método comentado ===
+    ==========================================================
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     public Pedido criar(@RequestBody @Valid PedidoDTO dto){ 
         return service.criar(dto); 
     }
+    ==========================================================
+    */
 
     @PatchMapping("/{id}/status")
     public Pedido atualizarStatus(@PathVariable Long id, @RequestParam StatusPedido status){
         return service.atualizarStatus(id, status);
-    }    
+    } 
 }

@@ -4,9 +4,21 @@
 
 <section th:fragment="content">
 
-    <div class="form-row">
+    <div class="form-row" style="justify-content: space-between; align-items: center;">
         <a class="btn" th:href="@{/pedidos/novo}">Abrir Novo Pedido</a>
+
+        <form th:action="@{/}" method="GET" style="display: flex; align-items: center; gap: 10px;">
+            <label for="statusFiltro" style="font-weight: 600; margin-bottom: 0;">Filtrar por Status:</label>
+            <select id="statusFiltro" name="statusFiltro" class="form-control" 
+                    style="width: 200px; height: 48px;" 
+                    onchange="this.form.submit()"> <option value="TODOS" th:selected="${statusFiltroAtivo == 'TODOS'}">Todos Ativos (Padrão)</option>
+                <option value="ABERTO" th:selected="${statusFiltroAtivo == 'ABERTO'}">Abertos</option>
+                <option value="EM_PREPARO" th:selected="${statusFiltroAtivo == 'EM_PREPARO'}">Em Preparo</option>
+                <option value="PRONTO" th:selected="${statusFiltroAtivo == 'PRONTO'}">Prontos</option>
+            </select>
+        </form>
     </div>
+
 
     <h2 class="section-title mt-22">Últimos pedidos</h2>
 
@@ -28,7 +40,7 @@
 
                     <th:block th:if="${statusEditId != null AND p.id == statusEditId}">
                         <td style="vertical-align: middle;" th:text="${p.id}">#</td>
-                        <td style="vertical-align: middle;" th:text="${p.cliente.nome}">Cliente</td>
+                        <td style="vertical-align: middle;" th:text="${p.nomeClienteObservacao}">Cliente</td>
                         <td style="vertical-align: middle;" th:text="${#lists.size(p.itens)}">0</td>
                         <td style="vertical-align: middle;"
                             th:text="${'R$ ' + #numbers.formatDecimal(p.total,1,'POINT',2,'COMMA')}">R$ 0,00</td>
@@ -37,34 +49,31 @@
                             <form th:action="@{/pedidos/atualizar-status}" method="POST"
                                   style="display: flex; align-items: center; gap: 6px;">
                                 <input type="hidden" name="id" th:value="${p.id}" />
+                                <input type="hidden" name="statusFiltro" th:value="${statusFiltroAtivo}" />
 
                                 <select name="status" class="form-control"
                                         style="height: 34px; padding: 0 10px; min-width: 140px;">
-                                    
                                     <option value="ABERTO"     th:selected="${p.status.name() == 'ABERTO'}">Aberto</option>
                                     <option value="EM_PREPARO" th:selected="${p.status.name() == 'EM_PREPARO'}">Em Preparo</option>
                                     <option value="PRONTO"     th:selected="${p.status.name() == 'PRONTO'}">Pronto</option>
                                     <option value="ENTREGUE"   th:selected="${p.status.name() == 'ENTREGUE'}">Entregue</option>
                                     <option value="FINALIZADO" th:selected="${p.status.name() == 'FINALIZADO'}">Finalizado</option>
                                     <option value="CANCELADO"  th:selected="${p.status.name() == 'CANCELADO'}">Cancelado</option>
-                                
                                 </select>
                                 <span style="color: var(--muted); margin-left: 10px; white-space: nowrap;"
                                       th:text="${#temporals.format(p.criadoEm, 'dd/MM HH:mm')}">
                                 </span>
-
                                 <button type="submit" class="btn btn-sm" style="margin-left: auto;">Salvar</button>
-                                <a th:href="@{/}" class="btn btn-sm btn-ghost">Cancelar</a>
+                                <a th:href="@{/(statusFiltro=${statusFiltroAtivo})}" class="btn btn-sm btn-ghost">Cancelar</a>
                             </form>
                         </td>
                     </th:block>
 
                     <th:block th:unless="${statusEditId != null AND p.id == statusEditId}">
                         <td th:text="${p.id}">#</td>
-                        <td th:text="${p.cliente.nome}">Cliente</td>
+                        <td th:text="${p.nomeClienteObservacao}">Cliente</td>
                         <td th:text="${#lists.size(p.itens)}">0</td>
                         <td th:text="${'R$ ' + #numbers.formatDecimal(p.total,1,'POINT',2,'COMMA')}">R$ 0,00</td>
-
                         <td>
                             <th:block th:switch="${p.status.name()}">
                                 <span th:case="'EM_PREPARO'" class="badge badge-warning" th:text="${p.status}"></span>
@@ -74,16 +83,13 @@
                                 <span th:case="'CANCELADO'" class="badge badge-danger" th:text="${p.status}"></span>
                                 <span th:case="*" class="badge" th:text="${p.status}"></span> </th:block>
                         </td>
-                        
                         <td th:text="${#temporals.format(p.criadoEm, 'dd/MM HH:mm')}">agora</td>
-
                         <td style="white-space: nowrap;">
                             <a th:href="@{/pedidos/editar/{id}(id=${p.id})}" class="btn btn-sm">
                                 Editar Itens
                             </a>
-                            
                             <a th:if="${p.status.name() != 'FINALIZADO' AND p.status.name() != 'CANCELADO'}"
-                               th:href="@{/(statusEditId=${p.id})}" class="btn btn-sm btn-ghost">
+                               th:href="@{/(statusEditId=${p.id}, statusFiltro=${statusFiltroAtivo})}" class="btn btn-sm btn-ghost">
                                 Alterar Status
                             </a>
                         </td>
@@ -92,7 +98,7 @@
 
                 <tr th:if="${#lists.isEmpty(ultimosPedidos)}">
                     <td colspan="7" style="text-align: center; color: var(--muted);">
-                        Sem pedidos recentes.
+                        Nenhum pedido encontrado para este filtro.
                     </td>
                 </tr>
             </tbody>

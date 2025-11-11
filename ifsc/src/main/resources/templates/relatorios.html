@@ -68,7 +68,7 @@
                 <tr th:each="p : ${relatorio.pedidos}">
                     <td th:text="${#temporals.format(p.criadoEm, 'dd/MM/yy HH:mm')}">Data</td>
                     <td th:text="${p.id}">#00</td>
-                    <td th:text="${p.nomeClienteObservacao ?: p.cliente.nome}">Cliente</td>
+                    <td th:text="${p.nomeClienteObservacao}">Cliente</td>
                     <td th:text="${#lists.size(p.itens)}">0</td>
                     <td th:text="${'R$ ' + #numbers.formatDecimal(p.total,1,'POINT',2,'COMMA')}">R$ 0,00</td>
                 </tr>

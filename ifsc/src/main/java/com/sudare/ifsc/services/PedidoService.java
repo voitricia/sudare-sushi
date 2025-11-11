@@ -1,7 +1,5 @@
 package com.sudare.ifsc.services;
 
-import com.sudare.ifsc.dtos.ItemPedidoDTO;
-import com.sudare.ifsc.dtos.PedidoDTO;
 import com.sudare.ifsc.dtos.RelatorioDTO;
 import com.sudare.ifsc.exceptions.NotFoundException;
 import com.sudare.ifsc.model.*;
@@ -17,31 +15,34 @@ import java.math.RoundingMode;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.time.ZoneOffset;
+import java.time.LocalDate;
+import java.time.LocalTime;
 import java.time.OffsetDateTime;
+import java.time.ZoneOffset;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
 
 @Service
 public class PedidoService {
     
+
     private final PedidoRepository pedidoRepository;
-    private final ClienteRepository clienteRepository;
     private final ProdutoRepository produtoRepository;
     private final ItemPedidoRepository itemPedidoRepository;
 
     public PedidoService(PedidoRepository pedidoRepository,
-                         ClienteRepository clienteRepository,
                          ProdutoRepository produtoRepository,
                          ItemPedidoRepository itemPedidoRepository) {
         this.pedidoRepository = pedidoRepository;
-        this.clienteRepository = clienteRepository;
         this.produtoRepository = produtoRepository;
         this.itemPedidoRepository = itemPedidoRepository;
     }
 
+    // Método para o PedidoController (API)
     public List<Pedido> listar(){ 
         return pedidoRepository.findAll(); 
     }
+    
     public Pedido buscar(Long id){ 
         return pedidoRepository.findById(id).orElseThrow(() -> new NotFoundException("Pedido não encontrado")); 
     }
@@ -52,25 +53,15 @@ public class PedidoService {
             .orElseThrow(() -> new NotFoundException("Pedido não encontrado"));
     }
 
+    /* ==========================================================
+    === CORREÇÃO: Método da API (quebrado) comentado ===
+    ==========================================================
     @Transactional
     public Pedido criar(PedidoDTO dto){
-        Cliente cliente = clienteRepository.findById(dto.clienteId()).orElseThrow(() -> new NotFoundException("Cliente não encontrado"));
-        Pedido pedido = new Pedido();
-        pedido.setCliente(cliente);
-        
-        if (dto.itens() != null) {
-            for(ItemPedidoDTO itemDto : dto.itens()){
-                Produto produto = produtoRepository.findById(itemDto.produtoId()).orElseThrow(() -> new NotFoundException("Produto não encontrado: ID " + itemDto.produtoId()));
-                ItemPedido item = new ItemPedido();
-                item.setProduto(produto);
-                item.setQuantidade(itemDto.quantidade());
-                item.setPrecoUnitario(itemDto.precoUnitario()); 
-                pedido.adicionarItem(item);
-            }
-        }
-        recalcularTotalPedido(pedido);
-        return pedidoRepository.save(pedido);
+        throw new UnsupportedOperationException("O método 'criar(PedidoDTO)' precisa ser refatorado após a remoção do Cliente.");
     }
+    ==========================================================
+    */
 
     @Transactional
     public Pedido atualizarStatus(Long id, StatusPedido status){
@@ -78,6 +69,10 @@ public class PedidoService {
         p.setStatus(status);
         return pedidoRepository.save(p);
     }
+    
+    /**
+     * Busca os pedidos para a Home, com filtro de status.
+     */
     @Transactional(readOnly = true)
     public List<Pedido> buscarFilaPreparo() {
         return pedidoRepository.findAllByStatusInWithCliente(
@@ -89,25 +84,36 @@ public class PedidoService {
         Pageable pageable = Pageable.unpaged();
         if (limite > 0) {
             pageable = PageRequest.of(0, limite, Sort.by("criadoEm").descending());
+    public List<Pedido> buscarPedidosHome(String statusFiltro) {
+        Pageable pageable = PageRequest.of(0, 20, Sort.by("criadoEm").descending());
+        
+        if (statusFiltro != null && !statusFiltro.isEmpty() && !statusFiltro.equals("TODOS")) {
+            try {
+                StatusPedido status = StatusPedido.valueOf(statusFiltro);
+                // Agora este método existe no repositório
+                return pedidoRepository.findAllByStatusOrderByCriadoEmDesc(status, pageable);
+            } catch (IllegalArgumentException e) {
+                // Filtro inválido
+            }
         }
-        return pedidoRepository.findAllWithCliente(pageable);
+        
+        List<StatusPedido> statusesAtivos = List.of(StatusPedido.ABERTO, StatusPedido.EM_PREPARO, StatusPedido.PRONTO);
+        // Agora este método existe no repositório
+        return pedidoRepository.findAllByStatusInOrderByCriadoEmDesc(statusesAtivos, pageable);
     }
 
     @Transactional
     public Pedido criarNovoPedido(String nomeObservacao) {
-        Cliente clientePadrao = clienteRepository.findByNome("Consumidor Final")
-                .orElseThrow(() -> new RuntimeException("Cliente 'Consumidor Final' não encontrado."));
-
         Pedido pedido = new Pedido();
-        pedido.setCliente(clientePadrao);
         pedido.setNomeClienteObservacao(nomeObservacao);
         pedido.setStatus(StatusPedido.ABERTO);
         pedido.setTotal(BigDecimal.ZERO);
-
         return pedidoRepository.save(pedido);
     }
     
-    @Transactional
+    // ... (O resto do seu PedidoService.java: adicionarItem, removerItem, relatorios, etc.) ...
+    
+     @Transactional
     public Pedido adicionarItemAoPedido(Long pedidoId, Long produtoId, Integer quantidade) {
         Pedido pedido = buscarCompletoParaEdicao(pedidoId);
         Produto produto = produtoRepository.findById(produtoId)
@@ -139,7 +145,6 @@ public class PedidoService {
         
         pedido.removerItem(item);
         itemPedidoRepository.delete(item); 
-        
         recalcularTotalPedido(pedido);
         return pedido;
     }
@@ -158,7 +163,6 @@ public class PedidoService {
 
         item.setQuantidade(quantidade);
         itemPedidoRepository.save(item);
-
         recalcularTotalPedido(item.getPedido());
     }
     
@@ -185,6 +189,7 @@ public class PedidoService {
                 subtotal = subtotal.add(i.getSubtotal());
             }
         }
+        BigDecimal total = BigDecimal.ZERO;
         
         // Aplica os 10% se a taxa estiver ativa
         BigDecimal totalFinal = subtotal;
@@ -198,6 +203,7 @@ public class PedidoService {
     }
 
     // ... (Métodos de relatório continuam iguais abaixo) ...
+    
     @Transactional(readOnly = true)
     public RelatorioDTO getRelatorio(LocalDate dataInicio, LocalDate dataFim) {
         OffsetDateTime inicio = dataInicio.atStartOfDay().atOffset(ZoneOffset.UTC);
@@ -218,6 +224,10 @@ public class PedidoService {
                 pedidos = pedidoRepository.findAllPedidosPorStatus(StatusPedido.FINALIZADO);
                 return calcularStats(pedidos);
             case "hoje": default: inicio = fim.truncatedTo(ChronoUnit.DAYS); break;
+            case "hoje":
+            default:
+                inicio = fim.truncatedTo(ChronoUnit.DAYS);
+                break;
         }
         pedidos = pedidoRepository.findPedidosPorStatusEData(StatusPedido.FINALIZADO, inicio, fim);
         return calcularStats(pedidos);
@@ -225,6 +235,9 @@ public class PedidoService {
 
     private RelatorioDTO calcularStats(List<Pedido> pedidos) {
         BigDecimal faturamento = pedidos.stream().map(Pedido::getTotal).reduce(BigDecimal.ZERO, BigDecimal::add);
+        BigDecimal faturamento = pedidos.stream()
+                                        .map(Pedido::getTotal)
+                                        .reduce(BigDecimal.ZERO, BigDecimal::add);
         Long numPedidos = (long) pedidos.size();
         return new RelatorioDTO(faturamento, numPedidos, pedidos);
     }
