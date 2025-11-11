@@ -32,6 +32,10 @@ public class Pedido {
     @Column(nullable = false)
     private BigDecimal total = BigDecimal.ZERO;
 
+    // === NOVO CAMPO PARA TAXA DE SERVIÇO ===
+    @Column(nullable = false)
+    private boolean taxaServico = false; 
+
     @OneToMany(mappedBy = "pedido", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     private List<ItemPedido> itens = new ArrayList<>();
 
@@ -55,62 +59,97 @@ public class Pedido {
         item.setPedido(null);
     }
 
+    // Calcula o subtotal (soma dos itens sem taxa)
+    public BigDecimal getSubtotalItens() {
+        if (itens == null) return BigDecimal.ZERO;
+        return itens.stream()
+                .map(ItemPedido::getSubtotal)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+    }
     // --- Getters e Setters ---
     // (Getters e Setters de Cliente foram removidos)
 
-    public Long getId() {
-        return id;
+    // Calcula apenas o valor da taxa para exibição
+    public BigDecimal getValorTaxaServico() {
+        if (!taxaServico) return BigDecimal.ZERO;
+        return getSubtotalItens().multiply(new BigDecimal("0.10"));
     }
 
-    public void setId(Long id) {
-        this.id = id;
+    // --- Getters e Setters ---
+
+    public Long getId() { 
+        return id; 
     }
 
+    public void setId(Long id) { 
+        this.id = id; 
+    }
+
+    public Cliente getCliente() { 
+        return cliente; 
+    }
+
+    public void setCliente(Cliente cliente) { 
+        this.cliente = cliente; 
     public String getNomeClienteObservacao() {
         return nomeClienteObservacao;
     }
 
-    public void setNomeClienteObservacao(String nomeClienteObservacao) {
-        this.nomeClienteObservacao = nomeClienteObservacao;
+    public String getNomeClienteObservacao() { 
+        return nomeClienteObservacao; 
     }
 
-    public StatusPedido getStatus() {
-        return status;
+    public void setNomeClienteObservacao(String nomeClienteObservacao) { 
+        this.nomeClienteObservacao = nomeClienteObservacao; 
     }
 
-    public void setStatus(StatusPedido status) {
-        this.status = status;
+    public StatusPedido getStatus() { 
+        return status; 
+    }
+    
+    public void setStatus(StatusPedido status) { 
+        this.status = status; 
     }
 
-    public BigDecimal getTotal() {
-        return total;
+    public BigDecimal getTotal() { 
+        return total; 
+    }
+    
+    public void setTotal(BigDecimal total) { 
+        this.total = total; 
     }
 
-    public void setTotal(BigDecimal total) {
-        this.total = total;
+    public List<ItemPedido> getItens() { 
+        return itens; 
     }
 
-    public List<ItemPedido> getItens() {
-        return itens;
+    public void setItens(List<ItemPedido> itens) { 
+        this.itens = itens; 
     }
 
-    public void setItens(List<ItemPedido> itens) {
-        this.itens = itens;
+    public OffsetDateTime getCriadoEm() { 
+        return criadoEm; 
     }
 
+    public void setCriadoEm(OffsetDateTime criadoEm) { 
+        this.criadoEm = criadoEm; 
     public OffsetDateTime getCriadoEm() {
         return criadoEm;
     }
 
-    public void setCriadoEm(OffsetDateTime criadoEm) {
-        this.criadoEm = criadoEm;
+    public OffsetDateTime getAtualizadoEm() { 
+        return atualizadoEm; 
     }
 
-    public OffsetDateTime getAtualizadoEm() {
-        return atualizadoEm;
+    public void setAtualizadoEm(OffsetDateTime atualizadoEm) { 
+        this.atualizadoEm = atualizadoEm; 
+    }
+    
+    public boolean isTaxaServico() { 
+        return taxaServico; 
     }
 
-    public void setAtualizadoEm(OffsetDateTime atualizadoEm) {
-        this.atualizadoEm = atualizadoEm;
+    public void setTaxaServico(boolean taxaServico) { 
+        this.taxaServico = taxaServico; 
     }
 }

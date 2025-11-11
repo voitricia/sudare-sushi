@@ -21,6 +21,9 @@
   </nav>
 </header>
 
+  <main class="container" th:insert="${content}">
+    <p>Carregando...</p>
+  </main>
 <main class="container"
       th:replace="${content}"> <p>Carregando...</p>
 </main>

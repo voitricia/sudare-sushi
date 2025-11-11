@@ -36,6 +36,17 @@ public class PagesController {
     // ==========================================================
     @GetMapping({"/", "/index"})
     public String home(Model model,
+                       @RequestParam(name = "statusEditId", required = false) Long statusEditId) {
+        model.addAttribute("ultimosPedidos", pedidoService.buscarUltimosPedidos(5));
+        model.addAttribute("fila", pedidoService.buscarFilaPreparo()); 
+        model.addAttribute("statusEditId", statusEditId); 
+        return "index";
+    }
+
+    @GetMapping("/cardapio")
+    public String cardapio(Model model) {
+        model.addAttribute("produtos", produtoService.listarProdutos());
+        return "cardapio";
                        @RequestParam(name = "statusEditId", required = false) Long statusEditId,
                        // Recebe o filtro do dropdown
                        @RequestParam(name = "statusFiltro", required = false) String statusFiltro) { 
@@ -72,7 +83,6 @@ public class PagesController {
                              @RequestParam(name = "periodo", required = false) String periodo,
                              @RequestParam(name = "dataInicio", required = false) String dataInicioStr,
                              @RequestParam(name = "dataFim", required = false) String dataFimStr) {
-        
         RelatorioDTO relatorio;
         String periodoAtivo = "hoje";
         LocalDate dataInicio = null;
@@ -98,7 +108,6 @@ public class PagesController {
         model.addAttribute("periodoAtivo", periodoAtivo);
         model.addAttribute("dataInicio", dataInicio); 
         model.addAttribute("dataFim", dataFim);
-        
         return "relatorios";
     }
 
@@ -158,11 +167,9 @@ public class PagesController {
     @GetMapping("/pedidos/editar/{id}")
     public String mostrarFormEditarPedido(@PathVariable Long id, Model model,
                                           @RequestParam(name = "editItemId", required = false) Long editItemId) {
-        
         model.addAttribute("pedido", pedidoService.buscarCompletoParaEdicao(id));
         model.addAttribute("produtos", produtoService.listarProdutos());
         model.addAttribute("editItemId", editItemId); 
-        
         return "form-editar-pedido"; 
     }
     
@@ -185,8 +192,15 @@ public class PagesController {
     public String atualizarItemDoPedido(@RequestParam Long pedidoId,
                                         @RequestParam Long itemPedidoId,
                                         @RequestParam Integer quantidade) {
-        
         pedidoService.atualizarItemQuantidade(itemPedidoId, quantidade);
+        return "redirect:/pedidos/editar/" + pedidoId;
+    }
+    
+    // === NOVO ENDPOINT PARA A TAXA DE SERVIÇO ===
+    @PostMapping("/pedidos/editar/taxa-servico")
+    public String atualizarTaxaServico(@RequestParam Long pedidoId,
+                                       @RequestParam(defaultValue = "false") boolean taxaAtiva) {
+        pedidoService.atualizarTaxaServico(pedidoId, taxaAtiva);
         return "redirect:/pedidos/editar/" + pedidoId;
     }
 }

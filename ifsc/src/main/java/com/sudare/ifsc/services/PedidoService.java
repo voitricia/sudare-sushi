@@ -11,6 +11,10 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
+import java.time.LocalDate;
+import java.time.LocalTime;
+import java.time.ZoneOffset;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.time.OffsetDateTime;
@@ -20,6 +24,7 @@ import java.util.List;
 
 @Service
 public class PedidoService {
+    
 
     private final PedidoRepository pedidoRepository;
     private final ProdutoRepository produtoRepository;
@@ -69,6 +74,16 @@ public class PedidoService {
      * Busca os pedidos para a Home, com filtro de status.
      */
     @Transactional(readOnly = true)
+    public List<Pedido> buscarFilaPreparo() {
+        return pedidoRepository.findAllByStatusInWithCliente(
+            List.of(StatusPedido.EM_PREPARO, StatusPedido.PRONTO)
+        );
+    }
+    @Transactional(readOnly = true)
+    public List<Pedido> buscarUltimosPedidos(int limite) {
+        Pageable pageable = Pageable.unpaged();
+        if (limite > 0) {
+            pageable = PageRequest.of(0, limite, Sort.by("criadoEm").descending());
     public List<Pedido> buscarPedidosHome(String statusFiltro) {
         Pageable pageable = PageRequest.of(0, 20, Sort.by("criadoEm").descending());
         
@@ -150,29 +165,44 @@ public class PedidoService {
         itemPedidoRepository.save(item);
         recalcularTotalPedido(item.getPedido());
     }
+    
+    // === NOVO MÉTODO PARA ALTERNAR A TAXA ===
+    @Transactional
+    public void atualizarTaxaServico(Long pedidoId, boolean ativa) {
+        Pedido pedido = buscarCompletoParaEdicao(pedidoId);
+        pedido.setTaxaServico(ativa);
+        recalcularTotalPedido(pedido); // Recalcula e salva
+    }
 
+    // === MÉTODO RECALCULAR ATUALIZADO ===
     private void recalcularTotalPedido(Pedido pedido) {
+        // Garante que temos os itens atualizados
+        Pedido pedidoAtualizado = pedido;
+        if (pedido.getId() != null) {
+            // Recarrega para garantir que não estamos usando dados obsoletos da sessão
+             pedidoAtualizado = pedidoRepository.findByIdCompleto(pedido.getId()).orElse(pedido);
+        }
+
+        BigDecimal subtotal = BigDecimal.ZERO;
+        if (pedidoAtualizado.getItens() != null) {
+            for (ItemPedido i : pedidoAtualizado.getItens()) {
+                subtotal = subtotal.add(i.getSubtotal());
+            }
+        }
         BigDecimal total = BigDecimal.ZERO;
         
-        if (pedido.getItens() == null || pedido.getItens().isEmpty()) {
-             if (pedido.getId() == null) {
-                 pedido.setTotal(BigDecimal.ZERO);
-                 return;
-             }
-             Pedido pedidoComItens = buscarCompletoParaEdicao(pedido.getId());
-             for (ItemPedido i : pedidoComItens.getItens()) {
-                 total = total.add(i.getSubtotal());
-             }
-             pedidoComItens.setTotal(total);
-             pedidoRepository.save(pedidoComItens);
-        } else {
-             for (ItemPedido i : pedido.getItens()) {
-                 total = total.add(i.getSubtotal());
-             }
-             pedido.setTotal(total);
-             pedidoRepository.save(pedido);
+        // Aplica os 10% se a taxa estiver ativa
+        BigDecimal totalFinal = subtotal;
+        if (pedidoAtualizado.isTaxaServico()) {
+            BigDecimal valorTaxa = subtotal.multiply(new BigDecimal("0.10"));
+            totalFinal = subtotal.add(valorTaxa);
         }
+        
+        pedidoAtualizado.setTotal(totalFinal.setScale(2, RoundingMode.HALF_EVEN));
+        pedidoRepository.save(pedidoAtualizado);
     }
+
+    // ... (Métodos de relatório continuam iguais abaixo) ...
     
     @Transactional(readOnly = true)
     public RelatorioDTO getRelatorio(LocalDate dataInicio, LocalDate dataFim) {
@@ -187,17 +217,13 @@ public class PedidoService {
         OffsetDateTime fim = OffsetDateTime.now(ZoneOffset.UTC);
         OffsetDateTime inicio;
         List<Pedido> pedidos;
-
         switch (periodo) {
-            case "semana":
-                inicio = fim.minusDays(7).truncatedTo(ChronoUnit.DAYS);
-                break;
-            case "mes":
-                inicio = fim.withDayOfMonth(1).truncatedTo(ChronoUnit.DAYS);
-                break;
+            case "semana": inicio = fim.minusDays(7).truncatedTo(ChronoUnit.DAYS); break;
+            case "mes": inicio = fim.withDayOfMonth(1).truncatedTo(ChronoUnit.DAYS); break;
             case "tudo":
                 pedidos = pedidoRepository.findAllPedidosPorStatus(StatusPedido.FINALIZADO);
                 return calcularStats(pedidos);
+            case "hoje": default: inicio = fim.truncatedTo(ChronoUnit.DAYS); break;
             case "hoje":
             default:
                 inicio = fim.truncatedTo(ChronoUnit.DAYS);
@@ -208,6 +234,7 @@ public class PedidoService {
     }
 
     private RelatorioDTO calcularStats(List<Pedido> pedidos) {
+        BigDecimal faturamento = pedidos.stream().map(Pedido::getTotal).reduce(BigDecimal.ZERO, BigDecimal::add);
         BigDecimal faturamento = pedidos.stream()
                                         .map(Pedido::getTotal)
                                         .reduce(BigDecimal.ZERO, BigDecimal::add);
