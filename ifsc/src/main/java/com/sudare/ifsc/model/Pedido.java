@@ -17,12 +17,7 @@ public class Pedido {
     private Long id;
 
     // --- RELAÇÃO COM CLIENTE REMOVIDA ---
-    // @ManyToOne(fetch = FetchType.LAZY)
-    // @JoinColumn(name = "cliente_id", nullable = false)
-    // private Cliente cliente;
-    // ------------------------------------
-
-    // Este campo agora é o único "dono" do nome
+    
     private String nomeClienteObservacao;
 
     @Enumerated(EnumType.STRING)
@@ -32,7 +27,6 @@ public class Pedido {
     @Column(nullable = false)
     private BigDecimal total = BigDecimal.ZERO;
 
-    // === NOVO CAMPO PARA TAXA DE SERVIÇO ===
     @Column(nullable = false)
     private boolean taxaServico = false; 
 
@@ -59,17 +53,13 @@ public class Pedido {
         item.setPedido(null);
     }
 
-    // Calcula o subtotal (soma dos itens sem taxa)
     public BigDecimal getSubtotalItens() {
         if (itens == null) return BigDecimal.ZERO;
         return itens.stream()
                 .map(ItemPedido::getSubtotal)
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
     }
-    // --- Getters e Setters ---
-    // (Getters e Setters de Cliente foram removidos)
 
-    // Calcula apenas o valor da taxa para exibição
     public BigDecimal getValorTaxaServico() {
         if (!taxaServico) return BigDecimal.ZERO;
         return getSubtotalItens().multiply(new BigDecimal("0.10"));
@@ -83,16 +73,6 @@ public class Pedido {
 
     public void setId(Long id) { 
         this.id = id; 
-    }
-
-    public Cliente getCliente() { 
-        return cliente; 
-    }
-
-    public void setCliente(Cliente cliente) { 
-        this.cliente = cliente; 
-    public String getNomeClienteObservacao() {
-        return nomeClienteObservacao;
     }
 
     public String getNomeClienteObservacao() { 
@@ -133,8 +113,6 @@ public class Pedido {
 
     public void setCriadoEm(OffsetDateTime criadoEm) { 
         this.criadoEm = criadoEm; 
-    public OffsetDateTime getCriadoEm() {
-        return criadoEm;
     }
 
     public OffsetDateTime getAtualizadoEm() { 

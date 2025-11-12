@@ -24,9 +24,6 @@
   <main class="container" th:insert="${content}">
     <p>Carregando...</p>
   </main>
-<main class="container"
-      th:replace="${content}"> <p>Carregando...</p>
-</main>
 
 <footer class="footer">
   <small>&copy; <span th:text="${#dates.format(#dates.createNow(), 'yyyy')}"></span> Sudarê Sushi</small>

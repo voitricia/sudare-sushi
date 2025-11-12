@@ -15,20 +15,17 @@ import java.math.RoundingMode;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.time.ZoneOffset;
-import java.time.LocalDate;
-import java.time.LocalTime;
 import java.time.OffsetDateTime;
-import java.time.ZoneOffset;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
 
 @Service
 public class PedidoService {
     
-
     private final PedidoRepository pedidoRepository;
     private final ProdutoRepository produtoRepository;
     private final ItemPedidoRepository itemPedidoRepository;
+    // private final ClienteRepository clienteRepository; // Removido
 
     public PedidoService(PedidoRepository pedidoRepository,
                          ProdutoRepository produtoRepository,
@@ -36,6 +33,7 @@ public class PedidoService {
         this.pedidoRepository = pedidoRepository;
         this.produtoRepository = produtoRepository;
         this.itemPedidoRepository = itemPedidoRepository;
+        // this.clienteRepository = clienteRepository; // Removido
     }
 
     // Método para o PedidoController (API)
@@ -53,14 +51,13 @@ public class PedidoService {
             .orElseThrow(() -> new NotFoundException("Pedido não encontrado"));
     }
 
-    /* ==========================================================
-    === CORREÇÃO: Método da API (quebrado) comentado ===
-    ==========================================================
+    /*
     @Transactional
     public Pedido criar(PedidoDTO dto){
-        throw new UnsupportedOperationException("O método 'criar(PedidoDTO)' precisa ser refatorado após a remoção do Cliente.");
+        // Este método está quebrado desde a remoção do Cliente.
+        // Precisa ser refatorado se for usado pela API.
+        throw new UnsupportedOperationException("O método 'criar(PedidoDTO)' precisa ser refatorado.");
     }
-    ==========================================================
     */
 
     @Transactional
@@ -74,31 +71,20 @@ public class PedidoService {
      * Busca os pedidos para a Home, com filtro de status.
      */
     @Transactional(readOnly = true)
-    public List<Pedido> buscarFilaPreparo() {
-        return pedidoRepository.findAllByStatusInWithCliente(
-            List.of(StatusPedido.EM_PREPARO, StatusPedido.PRONTO)
-        );
-    }
-    @Transactional(readOnly = true)
-    public List<Pedido> buscarUltimosPedidos(int limite) {
-        Pageable pageable = Pageable.unpaged();
-        if (limite > 0) {
-            pageable = PageRequest.of(0, limite, Sort.by("criadoEm").descending());
     public List<Pedido> buscarPedidosHome(String statusFiltro) {
         Pageable pageable = PageRequest.of(0, 20, Sort.by("criadoEm").descending());
         
         if (statusFiltro != null && !statusFiltro.isEmpty() && !statusFiltro.equals("TODOS")) {
             try {
                 StatusPedido status = StatusPedido.valueOf(statusFiltro);
-                // Agora este método existe no repositório
                 return pedidoRepository.findAllByStatusOrderByCriadoEmDesc(status, pageable);
             } catch (IllegalArgumentException e) {
-                // Filtro inválido
+                // Filtro inválido, retorna o padrão
             }
         }
         
+        // Padrão: "TODOS"
         List<StatusPedido> statusesAtivos = List.of(StatusPedido.ABERTO, StatusPedido.EM_PREPARO, StatusPedido.PRONTO);
-        // Agora este método existe no repositório
         return pedidoRepository.findAllByStatusInOrderByCriadoEmDesc(statusesAtivos, pageable);
     }
 
@@ -110,8 +96,6 @@ public class PedidoService {
         pedido.setTotal(BigDecimal.ZERO);
         return pedidoRepository.save(pedido);
     }
-    
-    // ... (O resto do seu PedidoService.java: adicionarItem, removerItem, relatorios, etc.) ...
     
      @Transactional
     public Pedido adicionarItemAoPedido(Long pedidoId, Long produtoId, Integer quantidade) {
@@ -166,20 +150,16 @@ public class PedidoService {
         recalcularTotalPedido(item.getPedido());
     }
     
-    // === NOVO MÉTODO PARA ALTERNAR A TAXA ===
     @Transactional
     public void atualizarTaxaServico(Long pedidoId, boolean ativa) {
         Pedido pedido = buscarCompletoParaEdicao(pedidoId);
         pedido.setTaxaServico(ativa);
-        recalcularTotalPedido(pedido); // Recalcula e salva
+        recalcularTotalPedido(pedido); 
     }
 
-    // === MÉTODO RECALCULAR ATUALIZADO ===
     private void recalcularTotalPedido(Pedido pedido) {
-        // Garante que temos os itens atualizados
         Pedido pedidoAtualizado = pedido;
         if (pedido.getId() != null) {
-            // Recarrega para garantir que não estamos usando dados obsoletos da sessão
              pedidoAtualizado = pedidoRepository.findByIdCompleto(pedido.getId()).orElse(pedido);
         }
 
@@ -189,9 +169,7 @@ public class PedidoService {
                 subtotal = subtotal.add(i.getSubtotal());
             }
         }
-        BigDecimal total = BigDecimal.ZERO;
         
-        // Aplica os 10% se a taxa estiver ativa
         BigDecimal totalFinal = subtotal;
         if (pedidoAtualizado.isTaxaServico()) {
             BigDecimal valorTaxa = subtotal.multiply(new BigDecimal("0.10"));
@@ -202,8 +180,6 @@ public class PedidoService {
         pedidoRepository.save(pedidoAtualizado);
     }
 
-    // ... (Métodos de relatório continuam iguais abaixo) ...
-    
     @Transactional(readOnly = true)
     public RelatorioDTO getRelatorio(LocalDate dataInicio, LocalDate dataFim) {
         OffsetDateTime inicio = dataInicio.atStartOfDay().atOffset(ZoneOffset.UTC);
@@ -223,8 +199,7 @@ public class PedidoService {
             case "tudo":
                 pedidos = pedidoRepository.findAllPedidosPorStatus(StatusPedido.FINALIZADO);
                 return calcularStats(pedidos);
-            case "hoje": default: inicio = fim.truncatedTo(ChronoUnit.DAYS); break;
-            case "hoje":
+            case "hoje": 
             default:
                 inicio = fim.truncatedTo(ChronoUnit.DAYS);
                 break;
@@ -234,7 +209,6 @@ public class PedidoService {
     }
 
     private RelatorioDTO calcularStats(List<Pedido> pedidos) {
-        BigDecimal faturamento = pedidos.stream().map(Pedido::getTotal).reduce(BigDecimal.ZERO, BigDecimal::add);
         BigDecimal faturamento = pedidos.stream()
                                         .map(Pedido::getTotal)
                                         .reduce(BigDecimal.ZERO, BigDecimal::add);

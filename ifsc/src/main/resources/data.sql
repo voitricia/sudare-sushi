@@ -64,25 +64,22 @@ INSERT INTO PRODUTO (nome, preco, ativo) VALUES
 ('Temaki Vegetariano ou Vegano', 32.00, true);
 
 /* ========================================================== */
-/* === CLIENTES === */
+/* === CLIENTES (REMOVIDO, POIS A ENTIDADE FOI REMOVIDA) === */
 /* ========================================================== */
-INSERT INTO CLIENTE (nome, email, telefone) VALUES
-('Guilherme', 'gui@sudare.com', '(47) 99999-9999'),
-('Patricia', 'patricia@sudare.com', '(47) 98888-8888');
+-- INSERT INTO CLIENTE (nome, email, telefone) VALUES
+-- ('Guilherme', 'gui@sudare.com', '(47) 99999-9999'),
+-- ('Patricia', 'patricia@sudare.com', '(47) 98888-8888');
+-- MERGE INTO CLIENTE (nome) KEY(nome) VALUES ('Consumidor Final');
 
-MERGE INTO CLIENTE (nome) KEY(nome) VALUES ('Consumidor Final');
 
 /* ========================================================== */
 /* === PEDIDOS DE TESTE === */
-/* CORREÇÃO: Adicionado 'taxa_servico' (false) em todos os inserts */
+/* Corrigido: Removido cliente_id, adicionado taxa_servico */
 /* ========================================================== */
 
 /* --- PEDIDO 1: FINALIZADO (Hoje) --- */
-INSERT INTO PEDIDO (cliente_id, nome_cliente_observacao, status, total, taxa_servico, criado_em, atualizado_em) VALUES 
-((SELECT id FROM CLIENTE WHERE nome = 'Consumidor Final'), 'Pedido de Hoje', 'FINALIZADO', 87.00, false,
-/* --- PEDIDO 1: FINALIZADO (Hoje) --- */
-INSERT INTO PEDIDO (nome_cliente_observacao, status, total, criado_em, atualizado_em) VALUES 
-('Pedido de Hoje', 'FINALIZADO', 87.00, 
+INSERT INTO PEDIDO (nome_cliente_observacao, status, total, taxa_servico, criado_em, atualizado_em) VALUES 
+('Pedido de Hoje', 'FINALIZADO', 87.00, false, 
 CURRENT_TIMESTAMP(), CURRENT_TIMESTAMP());
 
 INSERT INTO ITEM_PEDIDO (pedido_id, produto_id, quantidade, preco_unitario) VALUES 
@@ -90,20 +87,16 @@ INSERT INTO ITEM_PEDIDO (pedido_id, produto_id, quantidade, preco_unitario) VALU
 (1, (SELECT id FROM PRODUTO WHERE nome = 'Hosso Sakemaki'), 2, 24.00);
 
 /* --- PEDIDO 2: FINALIZADO (Semana Passada - 3 dias atrás) --- */
-INSERT INTO PEDIDO (cliente_id, nome_cliente_observacao, status, total, taxa_servico, criado_em, atualizado_em) VALUES 
-((SELECT id FROM CLIENTE WHERE nome = 'Guilherme'), null, 'FINALIZADO', 189.00, false,
-INSERT INTO PEDIDO (nome_cliente_observacao, status, total, criado_em, atualizado_em) VALUES 
-('Guilherme', 'FINALIZADO', 189.00, 
+INSERT INTO PEDIDO (nome_cliente_observacao, status, total, taxa_servico, criado_em, atualizado_em) VALUES 
+('Guilherme', 'FINALIZADO', 189.00, false, 
 DATEADD('DAY', -3, CURRENT_TIMESTAMP()), DATEADD('DAY', -3, CURRENT_TIMESTAMP()));
 
 INSERT INTO ITEM_PEDIDO (pedido_id, produto_id, quantidade, preco_unitario) VALUES 
 (2, (SELECT id FROM PRODUTO WHERE nome = 'Combinado 50 peças + Hot'), 1, 189.00);
 
 /* --- PEDIDO 3: FINALIZADO (Mês Atual - 10 dias atrás) --- */
-INSERT INTO PEDIDO (cliente_id, nome_cliente_observacao, status, total, taxa_servico, criado_em, atualizado_em) VALUES 
-((SELECT id FROM CLIENTE WHERE nome = 'Patricia'), 'Aniversário', 'FINALIZADO', 100.00, true, -- Exemplo com taxa TRUE
-INSERT INTO PEDIDO (nome_cliente_observacao, status, total, criado_em, atualizado_em) VALUES 
-('Patricia (Aniversário)', 'FINALIZADO', 100.00, 
+INSERT INTO PEDIDO (nome_cliente_observacao, status, total, taxa_servico, criado_em, atualizado_em) VALUES 
+('Patricia (Aniversário)', 'FINALIZADO', 100.00, true, -- Exemplo com taxa TRUE
 DATEADD('DAY', -10, CURRENT_TIMESTAMP()), DATEADD('DAY', -10, CURRENT_TIMESTAMP()));
 
 INSERT INTO ITEM_PEDIDO (pedido_id, produto_id, quantidade, preco_unitario) VALUES 
@@ -111,34 +104,32 @@ INSERT INTO ITEM_PEDIDO (pedido_id, produto_id, quantidade, preco_unitario) VALU
 (3, (SELECT id FROM PRODUTO WHERE nome = 'Temaki Salmão'), 1, 36.00);
 
 /* --- PEDIDO 4: FINALIZADO (Antigo - 40 dias atrás) --- */
-INSERT INTO PEDIDO (cliente_id, nome_cliente_observacao, status, total, taxa_servico, criado_em, atualizado_em) VALUES 
-((SELECT id FROM CLIENTE WHERE nome = 'Consumidor Final'), 'Pedido Antigo', 'FINALIZADO', 40.00, false,
-INSERT INTO PEDIDO (nome_cliente_observacao, status, total, criado_em, atualizado_em) VALUES 
-('Pedido Antigo', 'FINALIZADO', 40.00, 
+INSERT INTO PEDIDO (nome_cliente_observacao, status, total, taxa_servico, criado_em, atualizado_em) VALUES 
+('Pedido Antigo', 'FINALIZADO', 40.00, false,
 DATEADD('DAY', -40, CURRENT_TIMESTAMP()), DATEADD('DAY', -40, CURRENT_TIMESTAMP()));
 
 INSERT INTO ITEM_PEDIDO (pedido_id, produto_id, quantidade, preco_unitario) VALUES 
 (4, (SELECT id FROM PRODUTO WHERE nome = 'Sashimi Salmão'), 1, 40.00);
 
 /* --- PEDIDO 5: EM_PREPARO (Hoje - Para a Home) --- */
-INSERT INTO PEDIDO (nome_cliente_observacao, status, total, criado_em, atualizado_em) VALUES 
-('Pedido para a fila', 'EM_PREPARO', 29.00, 
+INSERT INTO PEDIDO (nome_cliente_observacao, status, total, taxa_servico, criado_em, atualizado_em) VALUES 
+('Pedido para a fila', 'EM_PREPARO', 29.00, false, 
 DATEADD('MINUTE', -10, CURRENT_TIMESTAMP()), DATEADD('MINUTE', -10, CURRENT_TIMESTAMP()));
 
 INSERT INTO ITEM_PEDIDO (pedido_id, produto_id, quantidade, preco_unitario) VALUES 
 (5, (SELECT id FROM PRODUTO WHERE nome = 'Guioza'), 1, 29.00);
 
 /* --- PEDIDO 6: ABERTO (Hoje - Para a Home) --- */
-INSERT INTO PEDIDO (nome_cliente_observacao, status, total, criado_em, atualizado_em) VALUES 
-('Acabou de abrir', 'ABERTO', 9.00, 
+INSERT INTO PEDIDO (nome_cliente_observacao, status, total, taxa_servico, criado_em, atualizado_em) VALUES 
+('Acabou de abrir', 'ABERTO', 9.00, false, 
 DATEADD('MINUTE', -5, CURRENT_TIMESTAMP()), DATEADD('MINUTE', -5, CURRENT_TIMESTAMP()));
 
 INSERT INTO ITEM_PEDIDO (pedido_id, produto_id, quantidade, preco_unitario) VALUES 
 (6, (SELECT id FROM PRODUTO WHERE nome = 'Sunomono'), 1, 9.00);
 
 /* --- PEDIDO 7: PRONTO (Hoje - Para a Home/Fila) --- */
-INSERT INTO PEDIDO (nome_cliente_observacao, status, total, criado_em, atualizado_em) VALUES 
-('Patricia (Pedido PRONTO)', 'PRONTO', 30.00, 
+INSERT INTO PEDIDO (nome_cliente_observacao, status, total, taxa_servico, criado_em, atualizado_em) VALUES 
+('Patricia (Pedido PRONTO)', 'PRONTO', 30.00, false,
 DATEADD('MINUTE', -20, CURRENT_TIMESTAMP()), DATEADD('MINUTE', -5, CURRENT_TIMESTAMP()));
 
 INSERT INTO ITEM_PEDIDO (pedido_id, produto_id, quantidade, preco_unitario) VALUES 

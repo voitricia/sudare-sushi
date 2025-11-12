@@ -32,23 +32,11 @@ public class PagesController {
     }
     
     // ==========================================================
-    // === MÉTODO HOME ATUALIZADO PARA O FILTRO <SELECT> ===
+    // === MÉTODO HOME CORRIGIDO ===
     // ==========================================================
     @GetMapping({"/", "/index"})
     public String home(Model model,
-                       @RequestParam(name = "statusEditId", required = false) Long statusEditId) {
-        model.addAttribute("ultimosPedidos", pedidoService.buscarUltimosPedidos(5));
-        model.addAttribute("fila", pedidoService.buscarFilaPreparo()); 
-        model.addAttribute("statusEditId", statusEditId); 
-        return "index";
-    }
-
-    @GetMapping("/cardapio")
-    public String cardapio(Model model) {
-        model.addAttribute("produtos", produtoService.listarProdutos());
-        return "cardapio";
                        @RequestParam(name = "statusEditId", required = false) Long statusEditId,
-                       // Recebe o filtro do dropdown
                        @RequestParam(name = "statusFiltro", required = false) String statusFiltro) { 
         
         // 1. Usa o método do service com o filtro
@@ -67,7 +55,6 @@ public class PagesController {
     // --- Método de Atualizar Status (para manter o filtro) ---
     @PostMapping("/pedidos/atualizar-status")
     public String atualizarPedidoStatus(@RequestParam Long id, @RequestParam StatusPedido status,
-                                        // Adicionado para manter o filtro ao atualizar status
                                         @RequestParam(name = "statusFiltro", required = false) String statusFiltro) {
         pedidoService.atualizarStatus(id, status);
         
@@ -196,7 +183,6 @@ public class PagesController {
         return "redirect:/pedidos/editar/" + pedidoId;
     }
     
-    // === NOVO ENDPOINT PARA A TAXA DE SERVIÇO ===
     @PostMapping("/pedidos/editar/taxa-servico")
     public String atualizarTaxaServico(@RequestParam Long pedidoId,
                                        @RequestParam(defaultValue = "false") boolean taxaAtiva) {
