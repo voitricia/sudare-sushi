@@ -15,6 +15,9 @@ public class Produto {
     @NotNull @DecimalMin("0.0")
     private BigDecimal preco;
 
+    @NotBlank
+    private String categoria;
+
     private boolean ativo = true;
 
     public Long getId() { 
@@ -29,18 +32,24 @@ public class Produto {
     public void setNome(String nome) { 
         this.nome = nome; 
     }
-
     public BigDecimal getPreco() { 
         return preco; 
     }
     public void setPreco(BigDecimal preco) { 
         this.preco = preco; 
     }
+    
+    public String getCategoria() {
+        return categoria;
+    }
+    public void setCategoria(String categoria) {
+        this.categoria = categoria;
+    }
+
     public boolean isAtivo() { 
         return ativo;
     }
     public void setAtivo(boolean ativo) { 
         this.ativo = ativo;
     }
-
 }

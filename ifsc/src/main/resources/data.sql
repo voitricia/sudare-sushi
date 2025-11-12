@@ -1,136 +1,75 @@
-/* ========================================================== */
-/* === PRODUTOS === */
-/* ========================================================== */
-INSERT INTO PRODUTO (nome, preco, ativo) VALUES
+INSERT INTO PRODUTO (nome, preco, ativo, categoria) VALUES
 /* ENTRADAS */
-('Tempura Camarão', 39.00, true),
-('Bolinho de Peixe', 39.00, true),
-('Guioza', 29.00, true),
-('Sunomono', 9.00, true),
-('Shimeji na manteiga', 40.00, true),
+('Tempura Camarão', 39.00, true, 'ENTRADAS'),
+('Bolinho de Peixe', 39.00, true, 'ENTRADAS'),
+('Guioza', 29.00, true, 'ENTRADAS'),
+('Sunomono', 9.00, true, 'ENTRADAS'),
+('Shimeji na manteiga', 40.00, true, 'ENTRADAS'),
 /* SASHIMIS */
-('Carpaccio', 49.00, true),
-('Ceviche', 49.00, true),
-('Sashimi Salmão', 40.00, true),
-('Sashimi Salmão Selado', 46.00, true),
-('Tartar', 49.00, true),
+('Carpaccio', 49.00, true, 'SASHIMIS'),
+('Ceviche', 49.00, true, 'SASHIMIS'),
+('Sashimi Salmão', 40.00, true, 'SASHIMIS'),
+('Sashimi Salmão Selado', 46.00, true, 'SASHIMIS'),
+('Tartar', 49.00, true, 'SASHIMIS'),
 /* HOSSOMAKIS */
-('Hosso Filadélfia', 24.00, true),
-('Hosso Kanimaki', 20.00, true),
-('Hosso Kappamaki', 20.00, true),
-('Hosso Sakemaki', 24.00, true),
+('Hosso Filadélfia', 24.00, true, 'HOSSOMAKIS'),
+('Hosso Kanimaki', 20.00, true, 'HOSSOMAKIS'),
+('Hosso Kappamaki', 20.00, true, 'HOSSOMAKIS'),
+('Hosso Sakemaki', 24.00, true, 'HOSSOMAKIS'),
 /* URAMAKIS */
-('Ura Califórnia', 28.00, true),
-('Ura Ebiten', 34.00, true),
-('Ura Salmão', 30.00, true),
-('Ura Skin', 28.00, true),
-('Ura Sudarê', 44.00, true),
-('Ura Vegetariano ou Vegano', 28.00, true),
-('Ura Filadélfia', 30.00, true),
+('Ura Califórnia', 28.00, true, 'URAMAKIS'),
+('Ura Ebiten', 34.00, true, 'URAMAKIS'),
+('Ura Salmão', 30.00, true, 'URAMAKIS'),
+('Ura Skin', 28.00, true, 'URAMAKIS'),
+('Ura Sudarê', 44.00, true, 'URAMAKIS'),
+('Ura Vegetariano ou Vegano', 28.00, true, 'URAMAKIS'),
+('Ura Filadélfia', 30.00, true, 'URAMAKIS'),
 /* FUTOMAKIS */
-('Futomaki Especial', 44.00, true),
-('Futomaki Salmão, Skin, Cream Cheese, Rúcula e Cebolinha', 38.00, true),
+('Futomaki Especial', 44.00, true, 'FUTOMAKIS'),
+('Futomaki Salmão, Skin, Cream Cheese, Rúcula e Cebolinha', 38.00, true, 'FUTOMAKIS'),
 /* NIGUIRIS */
-('Niguiri Camarão', 34.00, true),
-('Niguiri Kani', 20.00, true),
-('Niguiri Salmão', 28.00, true),
-('Niguiri Salmão Selado', 32.00, true),
-('Niguiri Skin', 24.00, true),
+('Niguiri Camarão', 34.00, true, 'NIGUIRIS'),
+('Niguiri Kani', 20.00, true, 'NIGUIRIS'),
+('Niguiri Salmão', 28.00, true, 'NIGUIRIS'),
+('Niguiri Salmão Selado', 32.00, true, 'NIGUIRIS'),
+('Niguiri Skin', 24.00, true, 'NIGUIRIS'),
 /* GUNKANS */
-('Gunkan Camarão', 38.00, true),
-('Gunkan Gorgonzola', 38.00, true),
-('Gunkan Shake Negui', 32.00, true),
-('Robata de Camarão', 38.00, true),
+('Gunkan Camarão', 38.00, true, 'GUNKANS'),
+('Gunkan Gorgonzola', 38.00, true, 'GUNKANS'),
+('Gunkan Shake Negui', 32.00, true, 'GUNKANS'),
+('Robata de Camarão', 38.00, true, 'GUNKANS'),
 /* COMBINADOS */
-('Combinado 24 peças', 99.00, true),
-('Combinado 50 peças + Hot', 189.00, true),
-('Combinado 80 peças', 259.00, true),
-('Combinado Vegano ou Vegetariano 24 peças', 79.00, true),
+('Combinado 24 peças', 99.00, true, 'COMBINADOS'),
+('Combinado 50 peças + Hot', 189.00, true, 'COMBINADOS'),
+('Combinado 80 peças', 259.00, true, 'COMBINADOS'),
+('Combinado Vegano ou Vegetariano 24 peças', 79.00, true, 'COMBINADOS'),
 /* HOTS */
-('Hot Camarão', 36.00, true),
-('Hot Filadélfia', 32.00, true), 
-('Hot Holl', 44.00, true),
+('Hot Camarão', 36.00, true, 'HOTS'),
+('Hot Filadélfia', 32.00, true, 'HOTS'), 
+('Hot Holl', 44.00, true, 'HOTS'),
 /* TEMAKIS */
-('Temaki Ebi', 42.00, true),
-('Temaki Ebi Tempura', 40.00, true),
-('Temaki Ebiten', 40.00, true),
-('Temaki Filadélfia', 36.00, true),
-('Temaki Hot', 40.00, true),
-('Temaki Salmão', 36.00, true), 
-('Temaki Salmão Mix', 36.00, true),
-('Temaki sem arroz', 49.00, true),
-('Temaki Skin', 32.00, true),
-('Temaki Sudarê', 54.00, true),
-('Temaki Vegetariano ou Vegano', 32.00, true);
+('Temaki Ebi', 42.00, true, 'TEMAKIS'),
+('Temaki Ebi Tempura', 40.00, true, 'TEMAKIS'),
+('Temaki Ebiten', 40.00, true, 'TEMAKIS'),
+('Temaki Filadélfia', 36.00, true, 'TEMAKIS'),
+('Temaki Hot', 40.00, true, 'TEMAKIS'),
+('Temaki Salmão', 36.00, true, 'TEMAKIS'), 
+('Temaki Salmão Mix', 36.00, true, 'TEMAKIS'),
+('Temaki sem arroz', 49.00, true, 'TEMAKIS'),
+('Temaki Skin', 32.00, true, 'TEMAKIS'),
+('Temaki Sudarê', 54.00, true, 'TEMAKIS'),
+('Temaki Vegetariano ou Vegano', 32.00, true, 'TEMAKIS'),
 
-/* ========================================================== */
-/* === CLIENTES (REMOVIDO, POIS A ENTIDADE FOI REMOVIDA) === */
-/* ========================================================== */
--- INSERT INTO CLIENTE (nome, email, telefone) VALUES
--- ('Guilherme', 'gui@sudare.com', '(47) 99999-9999'),
--- ('Patricia', 'patricia@sudare.com', '(47) 98888-8888');
--- MERGE INTO CLIENTE (nome) KEY(nome) VALUES ('Consumidor Final');
-
-
-/* ========================================================== */
-/* === PEDIDOS DE TESTE === */
-/* Corrigido: Removido cliente_id, adicionado taxa_servico */
-/* ========================================================== */
-
-/* --- PEDIDO 1: FINALIZADO (Hoje) --- */
-INSERT INTO PEDIDO (nome_cliente_observacao, status, total, taxa_servico, criado_em, atualizado_em) VALUES 
-('Pedido de Hoje', 'FINALIZADO', 87.00, false, 
-CURRENT_TIMESTAMP(), CURRENT_TIMESTAMP());
-
-INSERT INTO ITEM_PEDIDO (pedido_id, produto_id, quantidade, preco_unitario) VALUES 
-(1, (SELECT id FROM PRODUTO WHERE nome = 'Tempura Camarão'), 1, 39.00),
-(1, (SELECT id FROM PRODUTO WHERE nome = 'Hosso Sakemaki'), 2, 24.00);
-
-/* --- PEDIDO 2: FINALIZADO (Semana Passada - 3 dias atrás) --- */
-INSERT INTO PEDIDO (nome_cliente_observacao, status, total, taxa_servico, criado_em, atualizado_em) VALUES 
-('Guilherme', 'FINALIZADO', 189.00, false, 
-DATEADD('DAY', -3, CURRENT_TIMESTAMP()), DATEADD('DAY', -3, CURRENT_TIMESTAMP()));
-
-INSERT INTO ITEM_PEDIDO (pedido_id, produto_id, quantidade, preco_unitario) VALUES 
-(2, (SELECT id FROM PRODUTO WHERE nome = 'Combinado 50 peças + Hot'), 1, 189.00);
-
-/* --- PEDIDO 3: FINALIZADO (Mês Atual - 10 dias atrás) --- */
-INSERT INTO PEDIDO (nome_cliente_observacao, status, total, taxa_servico, criado_em, atualizado_em) VALUES 
-('Patricia (Aniversário)', 'FINALIZADO', 100.00, true, -- Exemplo com taxa TRUE
-DATEADD('DAY', -10, CURRENT_TIMESTAMP()), DATEADD('DAY', -10, CURRENT_TIMESTAMP()));
-
-INSERT INTO ITEM_PEDIDO (pedido_id, produto_id, quantidade, preco_unitario) VALUES 
-(3, (SELECT id FROM PRODUTO WHERE nome = 'Hot Filadélfia'), 2, 32.00),
-(3, (SELECT id FROM PRODUTO WHERE nome = 'Temaki Salmão'), 1, 36.00);
-
-/* --- PEDIDO 4: FINALIZADO (Antigo - 40 dias atrás) --- */
-INSERT INTO PEDIDO (nome_cliente_observacao, status, total, taxa_servico, criado_em, atualizado_em) VALUES 
-('Pedido Antigo', 'FINALIZADO', 40.00, false,
-DATEADD('DAY', -40, CURRENT_TIMESTAMP()), DATEADD('DAY', -40, CURRENT_TIMESTAMP()));
-
-INSERT INTO ITEM_PEDIDO (pedido_id, produto_id, quantidade, preco_unitario) VALUES 
-(4, (SELECT id FROM PRODUTO WHERE nome = 'Sashimi Salmão'), 1, 40.00);
-
-/* --- PEDIDO 5: EM_PREPARO (Hoje - Para a Home) --- */
-INSERT INTO PEDIDO (nome_cliente_observacao, status, total, taxa_servico, criado_em, atualizado_em) VALUES 
-('Pedido para a fila', 'EM_PREPARO', 29.00, false, 
-DATEADD('MINUTE', -10, CURRENT_TIMESTAMP()), DATEADD('MINUTE', -10, CURRENT_TIMESTAMP()));
-
-INSERT INTO ITEM_PEDIDO (pedido_id, produto_id, quantidade, preco_unitario) VALUES 
-(5, (SELECT id FROM PRODUTO WHERE nome = 'Guioza'), 1, 29.00);
-
-/* --- PEDIDO 6: ABERTO (Hoje - Para a Home) --- */
-INSERT INTO PEDIDO (nome_cliente_observacao, status, total, taxa_servico, criado_em, atualizado_em) VALUES 
-('Acabou de abrir', 'ABERTO', 9.00, false, 
-DATEADD('MINUTE', -5, CURRENT_TIMESTAMP()), DATEADD('MINUTE', -5, CURRENT_TIMESTAMP()));
-
-INSERT INTO ITEM_PEDIDO (pedido_id, produto_id, quantidade, preco_unitario) VALUES 
-(6, (SELECT id FROM PRODUTO WHERE nome = 'Sunomono'), 1, 9.00);
-
-/* --- PEDIDO 7: PRONTO (Hoje - Para a Home/Fila) --- */
-INSERT INTO PEDIDO (nome_cliente_observacao, status, total, taxa_servico, criado_em, atualizado_em) VALUES 
-('Patricia (Pedido PRONTO)', 'PRONTO', 30.00, false,
-DATEADD('MINUTE', -20, CURRENT_TIMESTAMP()), DATEADD('MINUTE', -5, CURRENT_TIMESTAMP()));
-
-INSERT INTO ITEM_PEDIDO (pedido_id, produto_id, quantidade, preco_unitario) VALUES 
-(7, (SELECT id FROM PRODUTO WHERE nome = 'Ura Salmão'), 1, 30.00);
+/* === NOVOS ITENS (BEBIDAS) === */
+('Refrigerante', 8.00, true, 'BEBIDAS'),
+('Água', 7.00, true, 'BEBIDAS'),
+('Sucos', 12.00, true, 'BEBIDAS'),
+('Cerveja long neck', 14.00, true, 'BEBIDAS'),
+('Cerveja artesanal 600ml', 32.00, true, 'BEBIDAS'),
+('Saquê dose', 32.00, true, 'BEBIDAS'),
+('Saquerinha', 32.00, true, 'BEBIDAS'),
+('Caipira Vodka', 32.00, true, 'BEBIDAS'),
+('Caipira Cachaça', 28.00, true, 'BEBIDAS'),
+/* Itens "Sob Consulta" (preço de 1 real para multiplicar pela quantidade) */
+('Espumantes (Sob Consulta)', 1.00, true, 'BEBIDAS'),
+('Vinhos (Sob Consulta)', 1.00, true, 'BEBIDAS');

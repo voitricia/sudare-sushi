@@ -17,6 +17,7 @@ import java.time.LocalTime;
 import java.time.ZoneOffset;
 import java.time.OffsetDateTime;
 import java.time.temporal.ChronoUnit;
+import java.util.ArrayList; 
 import java.util.List;
 
 @Service
@@ -25,7 +26,6 @@ public class PedidoService {
     private final PedidoRepository pedidoRepository;
     private final ProdutoRepository produtoRepository;
     private final ItemPedidoRepository itemPedidoRepository;
-    // private final ClienteRepository clienteRepository; // Removido
 
     public PedidoService(PedidoRepository pedidoRepository,
                          ProdutoRepository produtoRepository,
@@ -33,10 +33,8 @@ public class PedidoService {
         this.pedidoRepository = pedidoRepository;
         this.produtoRepository = produtoRepository;
         this.itemPedidoRepository = itemPedidoRepository;
-        // this.clienteRepository = clienteRepository; // Removido
     }
 
-    // Método para o PedidoController (API)
     public List<Pedido> listar(){ 
         return pedidoRepository.findAll(); 
     }
@@ -51,41 +49,40 @@ public class PedidoService {
             .orElseThrow(() -> new NotFoundException("Pedido não encontrado"));
     }
 
-    /*
-    @Transactional
-    public Pedido criar(PedidoDTO dto){
-        // Este método está quebrado desde a remoção do Cliente.
-        // Precisa ser refatorado se for usado pela API.
-        throw new UnsupportedOperationException("O método 'criar(PedidoDTO)' precisa ser refatorado.");
-    }
-    */
-
     @Transactional
     public Pedido atualizarStatus(Long id, StatusPedido status){
         Pedido p = buscar(id);
         p.setStatus(status);
         return pedidoRepository.save(p);
     }
-    
-    /**
-     * Busca os pedidos para a Home, com filtro de status.
-     */
+
     @Transactional(readOnly = true)
     public List<Pedido> buscarPedidosHome(String statusFiltro) {
         Pageable pageable = PageRequest.of(0, 20, Sort.by("criadoEm").descending());
         
-        if (statusFiltro != null && !statusFiltro.isEmpty() && !statusFiltro.equals("TODOS")) {
-            try {
-                StatusPedido status = StatusPedido.valueOf(statusFiltro);
-                return pedidoRepository.findAllByStatusOrderByCriadoEmDesc(status, pageable);
-            } catch (IllegalArgumentException e) {
-                // Filtro inválido, retorna o padrão
-            }
+        if (statusFiltro == null || statusFiltro.isEmpty()) {
+            statusFiltro = "ABERTO";
         }
-        
-        // Padrão: "TODOS"
-        List<StatusPedido> statusesAtivos = List.of(StatusPedido.ABERTO, StatusPedido.EM_PREPARO, StatusPedido.PRONTO);
-        return pedidoRepository.findAllByStatusInOrderByCriadoEmDesc(statusesAtivos, pageable);
+
+        if (statusFiltro.equals("NENHUM")) {
+            return new ArrayList<>(); 
+        }
+
+        if (statusFiltro.equals("TODOS")) {
+            List<StatusPedido> statusesAtivos = List.of(StatusPedido.ABERTO, StatusPedido.EM_PREPARO, StatusPedido.PRONTO);
+            return pedidoRepository.findHomeByStatusInWithItems(statusesAtivos, pageable);
+        }
+
+        if (statusFiltro.equals("TUDO")) {
+            return pedidoRepository.findHomeAllWithItems(pageable);
+        }
+
+        try {
+            StatusPedido status = StatusPedido.valueOf(statusFiltro);
+            return pedidoRepository.findHomeByStatusWithItems(status, pageable);
+        } catch (IllegalArgumentException e) {
+            return new ArrayList<>();
+        }
     }
 
     @Transactional
@@ -157,6 +154,13 @@ public class PedidoService {
         recalcularTotalPedido(pedido); 
     }
 
+    @Transactional
+    public Pedido atualizarObservacao(Long pedidoId, String observacao) {
+        Pedido pedido = buscar(pedidoId); 
+        pedido.setNomeClienteObservacao(observacao);
+        return pedidoRepository.save(pedido);
+    }
+
     private void recalcularTotalPedido(Pedido pedido) {
         Pedido pedidoAtualizado = pedido;
         if (pedido.getId() != null) {
@@ -182,28 +186,38 @@ public class PedidoService {
 
     @Transactional(readOnly = true)
     public RelatorioDTO getRelatorio(LocalDate dataInicio, LocalDate dataFim) {
-        OffsetDateTime inicio = dataInicio.atStartOfDay().atOffset(ZoneOffset.UTC);
-        OffsetDateTime fim = dataFim.atTime(LocalTime.MAX).atOffset(ZoneOffset.UTC);
+        ZoneOffset zonaDoServidor = OffsetDateTime.now().getOffset();
+        OffsetDateTime inicio = dataInicio.atStartOfDay().atOffset(zonaDoServidor);
+        OffsetDateTime fim = dataFim.atTime(LocalTime.MAX).atOffset(zonaDoServidor);
+        
         List<Pedido> pedidos = pedidoRepository.findPedidosPorStatusEData(StatusPedido.FINALIZADO, inicio, fim);
+        
         return calcularStats(pedidos);
     }
     
     @Transactional(readOnly = true)
     public RelatorioDTO getRelatorio(String periodo) {
-        OffsetDateTime fim = OffsetDateTime.now(ZoneOffset.UTC);
+        OffsetDateTime fim = OffsetDateTime.now();
         OffsetDateTime inicio;
         List<Pedido> pedidos;
+
         switch (periodo) {
-            case "semana": inicio = fim.minusDays(7).truncatedTo(ChronoUnit.DAYS); break;
-            case "mes": inicio = fim.withDayOfMonth(1).truncatedTo(ChronoUnit.DAYS); break;
+            case "semana":
+                inicio = fim.minusDays(7).truncatedTo(ChronoUnit.DAYS);
+                break;
+            case "mes":
+                inicio = fim.withDayOfMonth(1).truncatedTo(ChronoUnit.DAYS);
+                break;
             case "tudo":
                 pedidos = pedidoRepository.findAllPedidosPorStatus(StatusPedido.FINALIZADO);
                 return calcularStats(pedidos);
-            case "hoje": 
+            
+            case "hoje":
             default:
                 inicio = fim.truncatedTo(ChronoUnit.DAYS);
                 break;
         }
+
         pedidos = pedidoRepository.findPedidosPorStatusEData(StatusPedido.FINALIZADO, inicio, fim);
         return calcularStats(pedidos);
     }
@@ -212,7 +226,9 @@ public class PedidoService {
         BigDecimal faturamento = pedidos.stream()
                                         .map(Pedido::getTotal)
                                         .reduce(BigDecimal.ZERO, BigDecimal::add);
+
         Long numPedidos = (long) pedidos.size();
+
         return new RelatorioDTO(faturamento, numPedidos, pedidos);
     }
 }

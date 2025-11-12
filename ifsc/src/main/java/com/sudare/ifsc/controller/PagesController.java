@@ -18,12 +18,18 @@ import org.springframework.web.bind.annotation.RequestParam;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.util.List; 
 
 @Controller
 public class PagesController {
 
     private final ProdutoService produtoService;
     private final PedidoService pedidoService;
+    
+    private final List<String> CATEGORIAS = List.of(
+        "ENTRADAS", "SASHIMIS", "HOSSOMAKIS", "URAMAKIS", "FUTOMAKIS", 
+        "NIGUIRIS", "GUNKANS", "COMBINADOS", "HOTS", "TEMAKIS", "BEBIDAS"
+    );
 
     public PagesController(ProdutoService produtoService,
                            PedidoService pedidoService) {
@@ -31,40 +37,29 @@ public class PagesController {
         this.pedidoService = pedidoService;
     }
     
-    // ==========================================================
-    // === MÉTODO HOME CORRIGIDO ===
-    // ==========================================================
     @GetMapping({"/", "/index"})
     public String home(Model model,
                        @RequestParam(name = "statusEditId", required = false) Long statusEditId,
                        @RequestParam(name = "statusFiltro", required = false) String statusFiltro) { 
         
-        // 1. Usa o método do service com o filtro
         model.addAttribute("ultimosPedidos", pedidoService.buscarPedidosHome(statusFiltro));
-        
-        // 2. Passa o ID para a edição na linha (como antes)
         model.addAttribute("statusEditId", statusEditId); 
         
-        // 3. Passa o filtro ativo de volta para o HTML (para o <select> ficar correto)
-        String filtroAtivo = (statusFiltro == null || statusFiltro.isEmpty()) ? "TODOS" : statusFiltro;
+        String filtroAtivo = (statusFiltro == null || statusFiltro.isEmpty()) ? "ABERTO" : statusFiltro;
         model.addAttribute("statusFiltroAtivo", filtroAtivo);
         
         return "index";
     }
 
-    // --- Método de Atualizar Status (para manter o filtro) ---
     @PostMapping("/pedidos/atualizar-status")
     public String atualizarPedidoStatus(@RequestParam Long id, @RequestParam StatusPedido status,
                                         @RequestParam(name = "statusFiltro", required = false) String statusFiltro) {
         pedidoService.atualizarStatus(id, status);
         
-        String filtro = (statusFiltro == null || statusFiltro.isEmpty()) ? "TODOS" : statusFiltro;
-        // Retorna para a home, mantendo o filtro que estava ativo
+        String filtro = (statusFiltro == null || statusFiltro.isEmpty()) ? "ABERTO" : statusFiltro;
         return "redirect:/?statusFiltro=" + filtro;
     }
 
-
-    // --- (Resto do controller sem alteração) ---
     @GetMapping("/relatorios")
     public String relatorios(Model model,
                              @RequestParam(name = "periodo", required = false) String periodo,
@@ -74,7 +69,6 @@ public class PagesController {
         String periodoAtivo = "hoje";
         LocalDate dataInicio = null;
         LocalDate dataFim = null;
-
         if (periodo != null && !periodo.isEmpty()) {
             periodoAtivo = periodo;
             relatorio = pedidoService.getRelatorio(periodo);
@@ -90,7 +84,6 @@ public class PagesController {
         } else {
             relatorio = pedidoService.getRelatorio("hoje");
         }
-
         model.addAttribute("relatorio", relatorio);
         model.addAttribute("periodoAtivo", periodoAtivo);
         model.addAttribute("dataInicio", dataInicio); 
@@ -100,7 +93,7 @@ public class PagesController {
 
     @GetMapping("/cardapio")
     public String cardapio(Model model) {
-        model.addAttribute("produtos", produtoService.listarProdutos());
+        model.addAttribute("produtosAgrupados", produtoService.listarProdutosAgrupados());
         return "cardapio";
     }
 
@@ -112,21 +105,24 @@ public class PagesController {
 
     @GetMapping("/produtos/novo")
     public String mostrarFormNovoProduto(Model model) {
-        ProdutoDTO dto = new ProdutoDTO(null, "", BigDecimal.ZERO, true);
+        model.addAttribute("categorias", CATEGORIAS);
+        ProdutoDTO dto = new ProdutoDTO(null, "", null, BigDecimal.ZERO, true);
         model.addAttribute("produto", dto);
         return "form-produto";
     }
     
     @GetMapping("/produtos/editar/{id}")
     public String mostrarFormEditarProduto(@PathVariable Long id, Model model) {
+        model.addAttribute("categorias", CATEGORIAS);
         model.addAttribute("produto", produtoService.buscarDTO(id));
         return "form-produto";
     }
 
     @PostMapping("/produtos/salvar")
     public String salvarProduto(@Valid @ModelAttribute("produto") ProdutoDTO dto, 
-                                BindingResult bindingResult) {
+                                BindingResult bindingResult, Model model) {
         if (bindingResult.hasErrors()) {
+            model.addAttribute("categorias", CATEGORIAS);
             return "form-produto";
         }
         if (dto.id() != null) {
@@ -143,11 +139,15 @@ public class PagesController {
     }
 
     @PostMapping("/pedidos/criar")
-    public String criarPedido(@RequestParam String nomeObservacao) {
-        if(nomeObservacao == null || nomeObservacao.trim().isEmpty()) {
-            nomeObservacao = "Pedido Balcão";
+    public String criarPedido(@RequestParam String local,
+                            @RequestParam(name = "observacao", required = false) String observacao) {
+        String observacaoFinal;
+        if (observacao != null && !observacao.trim().isEmpty()) {
+            observacaoFinal = local + " (" + observacao + ")";
+        } else {
+            observacaoFinal = local;
         }
-        Pedido pedidoSalvo = pedidoService.criarNovoPedido(nomeObservacao);
+        Pedido pedidoSalvo = pedidoService.criarNovoPedido(observacaoFinal);
         return "redirect:/pedidos/editar/" + pedidoSalvo.getId();
     }
     
@@ -155,7 +155,7 @@ public class PagesController {
     public String mostrarFormEditarPedido(@PathVariable Long id, Model model,
                                           @RequestParam(name = "editItemId", required = false) Long editItemId) {
         model.addAttribute("pedido", pedidoService.buscarCompletoParaEdicao(id));
-        model.addAttribute("produtos", produtoService.listarProdutos());
+        model.addAttribute("produtosAgrupados", produtoService.listarProdutosAgrupados());
         model.addAttribute("editItemId", editItemId); 
         return "form-editar-pedido"; 
     }
@@ -187,6 +187,13 @@ public class PagesController {
     public String atualizarTaxaServico(@RequestParam Long pedidoId,
                                        @RequestParam(defaultValue = "false") boolean taxaAtiva) {
         pedidoService.atualizarTaxaServico(pedidoId, taxaAtiva);
+        return "redirect:/pedidos/editar/" + pedidoId;
+    }
+
+    @PostMapping("/pedidos/editar/observacao")
+    public String atualizarObservacao(@RequestParam Long pedidoId,
+                                    @RequestParam String nomeClienteObservacao) {
+        pedidoService.atualizarObservacao(pedidoId, nomeClienteObservacao);
         return "redirect:/pedidos/editar/" + pedidoId;
     }
 }

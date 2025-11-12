@@ -20,36 +20,39 @@
                 </tr>
             </thead>
             <tbody>
-                <tr th:each="prod : ${produtos}">
-                    <td style="font-weight: 600;" th:text="${prod.nome}">Nome do Produto</td>
+            
+                <th:block th:each="entry : ${produtosAgrupados}">
+                    <tr style="background-color: var(--bg);">
+                        <th colspan="4" style="font-size: 1.1em; color: var(--text); padding-left: 15px;">
+                            <span th:text="${entry.key}">CATEGORIA</span>
+                        </th>
+                    </tr>
                     
-                    <td th:text="${'R$ ' + #numbers.formatDecimal(prod.preco,1,'POINT',2,'COMMA')}">R$ 0,00</td>
-                    
-                    <td>
-                        <span th:if="${prod.ativo}" class="badge badge-success">Ativo</span>
-                        <span th:unless="${prod.ativo}" class="badge badge-danger">Inativo</span>
-                    </td>
-                    
-                    <td style="white-space: nowrap;">
-                        <a th:href="@{/produtos/editar/{id}(id=${prod.id})}" class="btn btn-sm btn-ghost">
-                            Editar
-                        </a>
-
-                        <form th:if="${prod.ativo}" th:action="@{/cardapio/atualizar-ativo}" method="POST" style="display: inline-block; margin-left: 6px;">
-                            <input type="hidden" name="id" th:value="${prod.id}" />
-                            <input type="hidden" name="ativo" value="false" />
-                            <button type="submit" class="btn btn-sm btn-ghost-danger">Desativar</button>
-                        </form>
-
-                        <form th:unless="${prod.ativo}" th:action="@{/cardapio/atualizar-ativo}" method="POST" style="display: inline-block; margin-left: 6px;">
-                            <input type="hidden" name="id" th:value="${prod.id}" />
-                            <input type="hidden" name="ativo" value="true" />
-                            <button type="submit" class="btn btn-sm btn-ghost-success">Ativar</button>
-                        </form>
-                    </td>
-                </tr>
-                
-                <tr th:if="${#lists.isEmpty(produtos)}">
+                    <tr th:each="prod : ${entry.value}">
+                        <td style="font-weight: 600;" th:text="${prod.nome}">Nome do Produto</td>
+                        <td th:text="${'R$ ' + #numbers.formatDecimal(prod.preco,1,'POINT',2,'COMMA')}">R$ 0,00</td>
+                        <td>
+                            <span th:if="${prod.ativo}" class="badge badge-success">Ativo</span>
+                            <span th:unless="${prod.ativo}" class="badge badge-danger">Inativo</span>
+                        </td>
+                        <td style="white-space: nowrap;">
+                            <a th:href="@{/produtos/editar/{id}(id=${prod.id})}" class="btn btn-sm btn-ghost">
+                                Editar
+                            </a>
+                            <form th:if="${prod.ativo}" th:action="@{/cardapio/atualizar-ativo}" method="POST" style="display: inline-block; margin-left: 6px;">
+                                <input type="hidden" name="id" th:value="${prod.id}" />
+                                <input type="hidden" name="ativo" value="false" />
+                                <button type="submit" class="btn btn-sm btn-ghost-danger">Desativar</button>
+                            </form>
+                            <form th:unless="${prod.ativo}" th:action="@{/cardapio/atualizar-ativo}" method="POST" style="display: inline-block; margin-left: 6px;">
+                                <input type="hidden" name="id" th:value="${prod.id}" />
+                                <input type="hidden" name="ativo" value="true" />
+                                <button type="submit" class="btn btn-sm btn-ghost-success">Ativar</button>
+                            </form>
+                        </td>
+                    </tr>
+                </th:block>
+                <tr th:if="${#maps.isEmpty(produtosAgrupados)}">
                     <td colspan="4" style="text-align: center; color: var(--muted);">
                         Nenhum produto cadastrado.
                     </td>

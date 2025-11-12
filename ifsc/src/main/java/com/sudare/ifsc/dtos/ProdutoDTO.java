@@ -10,6 +10,9 @@ public record ProdutoDTO(
 
         @NotBlank(message = "O nome é obrigatório")
         String nome,
+        
+        @NotBlank(message = "A categoria é obrigatória")
+        String categoria,
 
         @NotNull(message = "O preço é obrigatório")
         @DecimalMin(value = "0.01", message = "O preço deve ser maior que R$ 0,00")

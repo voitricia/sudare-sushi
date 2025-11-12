@@ -14,11 +14,9 @@ import java.util.Optional;
 
 public interface PedidoRepository extends JpaRepository<Pedido, Long> {
 
-    // Para a página de Edição
     @Query("SELECT p FROM Pedido p LEFT JOIN FETCH p.itens WHERE p.id = :id")
     Optional<Pedido> findByIdCompleto(@Param("id") Long id);
 
-    // Para os Relatórios
     @Query("SELECT p FROM Pedido p " +
            "WHERE p.status = :status AND p.criadoEm BETWEEN :inicio AND :fim " +
            "ORDER BY p.criadoEm DESC")
@@ -28,24 +26,20 @@ public interface PedidoRepository extends JpaRepository<Pedido, Long> {
         @Param("fim") OffsetDateTime fim
     );
 
-    // Para os Relatórios
     @Query("SELECT p FROM Pedido p " +
            "WHERE p.status = :status ORDER BY p.criadoEm DESC")
     List<Pedido> findAllPedidosPorStatus(@Param("status") StatusPedido status);
 
-    
-    // ==========================================================
-    // === MÉTODOS NOVOS QUE CORRIGEM O ERRO (image_954616.png) ===
-    // ==========================================================
-    
-    /**
-     * Busca pedidos por UM status, ordenado por data e com paginação
-     */
-    List<Pedido> findAllByStatusOrderByCriadoEmDesc(StatusPedido status, Pageable pageable);
+    @Query("SELECT DISTINCT p FROM Pedido p LEFT JOIN FETCH p.itens i LEFT JOIN FETCH i.produto prod " +
+           "WHERE p.status = :status ORDER BY p.criadoEm DESC")
+    List<Pedido> findHomeByStatusWithItems(@Param("status") StatusPedido status, Pageable pageable);
 
-    /**
-     * Busca pedidos por VÁRIOS status, ordenado por data e com paginação
-     */
-    List<Pedido> findAllByStatusInOrderByCriadoEmDesc(Collection<StatusPedido> statuses, Pageable pageable);
+    @Query("SELECT DISTINCT p FROM Pedido p LEFT JOIN FETCH p.itens i LEFT JOIN FETCH i.produto prod " +
+           "WHERE p.status IN :statuses ORDER BY p.criadoEm DESC")
+    List<Pedido> findHomeByStatusInWithItems(@Param("statuses") Collection<StatusPedido> statuses, Pageable pageable);
+
+    @Query("SELECT DISTINCT p FROM Pedido p LEFT JOIN FETCH p.itens i LEFT JOIN FETCH i.produto prod " +
+           "ORDER BY p.criadoEm DESC")
+    List<Pedido> findHomeAllWithItems(Pageable pageable);
 
 }

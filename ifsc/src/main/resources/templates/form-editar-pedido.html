@@ -1,203 +1,195 @@
 <!doctype html>
 <html lang="pt-br" xmlns:th="http://www.thymeleaf.org"
-      th:replace="~{_layout :: layout('Editar Pedido', 'pedidos', ~{::content})}">
+      th:replace="~{_layout :: layout(${'Home • Sudarê Sushi'}, 'home', ~{::content})}">
 
-<section class="section" th:fragment="content">
+<section th:fragment="content">
 
-  <h2 class="section-title">Editar Pedido (Etapa 2 de 2)</h2>
+    <div class="form-row" style="justify-content: space-between; align-items: center;">
+        <a class="btn" th:href="@{/pedidos/novo}">Abrir Novo Pedido</a>
 
-  <div class="mt-16">
-    <strong>Pedido ID:</strong> <span th:text="${pedido.id}">#00</span><br/>
-    <strong>Cliente:</strong> 
-    <span th:text="${pedido.nomeClienteObservacao}">Nome do Cliente</span><br/>
-    <strong>Status:</strong> <span th:text="${pedido.status}">ABERTO</span>
-  </div>
+        <form th:action="@{/}" method="GET" style="display: flex; align-items: center; gap: 10px;">
+            <label for="statusFiltro" style="font-weight: 600; margin-bottom: 0;">Filtrar por Status:</label>
+            <select id="statusFiltro" name="statusFiltro" class="form-control" 
+                    style="width: 220px; height: 48px;" 
+                    onchange="this.form.submit()">
+                
+                <option value="NENHUM" th:selected="${statusFiltroAtivo == 'NENHUM'}">-- Selecione um filtro --</option>
+                <option value="TODOS" th:selected="${statusFiltroAtivo == 'TODOS'}">Fila (Ativos)</option>
+                <option value="ABERTO" th:selected="${statusFiltroAtivo == 'ABERTO'}">Abertos</option> <option value="EM_PREPARO" th:selected="${statusFiltroAtivo == 'EM_PREPARO'}">Em Preparo</option>
+                <option value="PRONTO" th:selected="${statusFiltroAtivo == 'PRONTO'}">Prontos</option>
+                <option value="FINALIZADO" th:selected="${statusFiltroAtivo == 'FINALIZADO'}">Finalizados</option>
+                <option value="CANCELADO" th:selected="${statusFiltroAtivo == 'CANCELADO'}">Cancelados</option>
+                <option value="TUDO" th:selected="${statusFiltroAtivo == 'TUDO'}">Todos (Histórico)</option>
+            </select>
+        </form>
+    </div>
 
-  <hr style="border-color: var(--stroke); margin: 20px 0;"/>
 
-  <h3 class="section-subtitle">Itens do Pedido</h3>
+    <h2 class="section-title mt-22">Últimos pedidos</h2>
 
-  <div class="table-wrap">
-    <table class="table">
-      <thead>
-        <tr>
-          <th>Produto</th>
-          <th>Qtd.</th>
-          <th>Preço Unit.</th>
-          <th>Subtotal</th>
-          <th>Ação</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr th:each="item : ${pedido.itens}">
-          <th:block th:if="${editItemId != null AND item.id == editItemId}">
-            <td style="vertical-align: middle;" th:text="${item.produto.nome}">Produto</td>
-            <td style="vertical-align: middle;">
-              <form th:action="@{/pedidos/editar/atualizar-item}" method="POST" style="display: flex; align-items: center; gap: 6px;">
-                <input type="hidden" name="pedidoId" th:value="${pedido.id}" />
-                <input type="hidden" name="itemPedidoId" th:value="${item.id}" />
-                <input type="number" name="quantidade" th:value="${item.quantidade}" min="1" class="form-control" style="width: 70px; height: 34px; padding: 5px 8px;" />
-                <button type="submit" class="btn btn-sm">OK</button>
-              </form>
-            </td>
-            <td style="vertical-align: middle;" th:text="${'R$ ' + #numbers.formatDecimal(item.precoUnitario,1,'POINT',2,'COMMA')}">R$ 0,00</td>
-            <td style="vertical-align: middle;" th:text="${'R$ ' + #numbers.formatDecimal(item.getSubtotal(),1,'POINT',2,'COMMA')}">R$ 0,00</td>
-            <td style="vertical-align: middle;">
-              <a th:href="@{/pedidos/editar/{id}(id=${pedido.id})}" class="btn btn-sm btn-ghost">Cancelar</a>
-            </td>
-          </th:block>
-          <th:block th:unless="${editItemId != null AND item.id == editItemId}">
-            <td style="vertical-align: middle;" th:text="${item.produto.nome}">Produto</td>
-            <td style="vertical-align: middle;" th:text="${item.quantidade}">1</td>
-            <td style="vertical-align: middle;" th:text="${'R$ ' + #numbers.formatDecimal(item.precoUnitario,1,'POINT',2,'COMMA')}">R$ 0,00</td>
-            <td style="vertical-align: middle;" th:text="${'R$ ' + #numbers.formatDecimal(item.getSubtotal(),1,'POINT',2,'COMMA')}">R$ 0,00</td>
-            <td style="vertical-align: middle; white-space: nowrap;">
-              <a th:href="@{/pedidos/editar/{id}(id=${pedido.id}, editItemId=${item.id})}" class="btn btn-sm">
-                Editar
-              </a>
-              <form th:action="@{/pedidos/editar/remover-item}" method="POST" style="display: inline-block; margin-left: 6px;">
-                <input type="hidden" name="pedidoId" th:value="${pedido.id}" />
-                <input type="hidden" name="itemPedidoId" th:value="${item.id}" />
-                <button type="submit" class="btn btn-sm btn-ghost">Remover</button>
-              </form>
-            </td>
-          </th:block>
-        </tr>
-        <tr th:if="${#lists.isEmpty(pedido.itens)}">
-          <td colspan="5" style="text-align: center; color: var(--muted);">
-            Nenhum item adicionado a este pedido.
-          </td>
-        </tr>
-      </tbody>
-      <tfoot>
-        <tr style="border-top: 2px solid var(--stroke);">
-            <td colspan="3" style="text-align: right; font-weight: 600;">Subtotal:</td>
-            <td colspan="2" th:text="${'R$ ' + #numbers.formatDecimal(pedido.getSubtotalItens(),1,'POINT',2,'COMMA')}">R$ 0,00</td>
-        </tr>
-        
-        <tr>
-            <td colspan="3" style="text-align: right;">
-                <form th:action="@{/pedidos/editar/taxa-servico}" method="POST" id="formTaxa">
-                    <input type="hidden" name="pedidoId" th:value="${pedido.id}" />
-                    <label style="cursor: pointer; display: flex; align-items: center; justify-content: flex-end; gap: 8px;">
-                        <input type="checkbox" name="taxaAtiva" 
-                               th:checked="${pedido.taxaServico}"
-                               onchange="document.getElementById('formTaxa').submit()"
-                               style="accent-color: var(--brand); width: 16px; height: 16px;" />
-                        Taxa de serviço (10%)
-                    </label>
-                </form>
-            </td>
-            <td colspan="2" th:text="${'+ R$ ' + #numbers.formatDecimal(pedido.getValorTaxaServico(),1,'POINT',2,'COMMA')}">R$ 0,00</td>
-        </tr>
+    <div class="table-wrap">
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>Cliente</th>
+                    <th>Itens</th>
+                    <th>Valor</th>
+                    <th>Status</th>
+                    <th>Atualizado</th>
+                    <th>Ações</th>
+                </tr>
+            </thead>
+            <tbody>
+                <th:block th:each="p : ${ultimosPedidos}">
+                    <tr th:classappend="${statusEditId != null AND p.id == statusEditId} ? 'row-disabled' : 'row-clickable'"
+                        th:onclick="|toggleItens('${p.id}')|">
 
-        <tr style="font-size: 1.3em; font-weight: 800; color: var(--brand);">
-          <td colspan="3" style="text-align: right;">TOTAL:</td>
-          <td colspan="2" th:text="${'R$ ' + #numbers.formatDecimal(pedido.total,1,'POINT',2,'COMMA')}">R$ 0,00</td>
-        </tr>
-      </tfoot>
-    </table>
-  </div>
+                        <th:block th:if="${statusEditId != null AND p.id == statusEditId}">
+                            <td style="vertical-align: middle;" th:text="${p.id}">#</td>
+                            <td style="vertical-align: middle;">
+                                <th:block th:if="${#strings.contains(p.nomeClienteObservacao, '(')}">
+                                    <span th:text="${#strings.substringBefore(p.nomeClienteObservacao, '(')}" style="font-weight: 600;"></span>
+                                    <br/>
+                                    <small style="color: var(--muted);" th:text="${'(' + #strings.substringAfter(p.nomeClienteObservacao, '(')}"></small>
+                                </th:block>
+                                <th:block th:unless="${#strings.contains(p.nomeClienteObservacao, '(')}">
+                                    <span th:text="${p.nomeClienteObservacao}" style="font-weight: 600;"></span>
+                                </th:block>
+                            </td>
+                            <td style="vertical-align: middle;" th:text="${#lists.size(p.itens)}">0</td>
+                            <td style="vertical-align: middle;"
+                                th:text="${'R$ ' + #numbers.formatDecimal(p.total,1,'POINT',2,'COMMA')}">R$ 0,00</td>
 
-  <hr style="border-color: var(--stroke); margin: 20px 0;"/>
+                            <td colspan="3" style="vertical-align: middle;">
+                                <form th:action="@{/pedidos/atualizar-status}" method="POST"
+                                      style="display: flex; align-items: center; gap: 6px;">
+                                    <input type="hidden" name="id" th:value="${p.id}" />
+                                    <input type="hidden" name="statusFiltro" th:value="${statusFiltroAtivo}" />
+                                    <select name="status" class="form-control" style="height: 34px; padding: 0 10px; min-width: 140px;">
+                                        <option value="ABERTO"     th:selected="${p.status.name() == 'ABERTO'}">Aberto</option>
+                                        <option value="EM_PREPARO" th:selected="${p.status.name() == 'EM_PREPARO'}">Em Preparo</option>
+                                        <option value="PRONTO"     th:selected="${p.status.name() == 'PRONTO'}">Pronto</option>
+                                        <option value="ENTREGUE"   th:selected="${p.status.name() == 'ENTREGUE'}">Entregue</option>
+                                        <option value="FINALIZADO" th:selected="${p.status.name() == 'FINALIZADO'}">Finalizado</option>
+                                        <option value="CANCELADO"  th:selected="${p.status.name() == 'CANCELADO'}">Cancelado</option>
+                                    </select>
+                                    <span style="color: var(--muted); margin-left: 10px; white-space: nowrap;"
+                                          th:text="${#temporals.format(p.criadoEm, 'dd/MM HH:mm')}">
+                                    </span>
+                                    <button type="submit" class="btn btn-sm" style="margin-left: auto;">Salvar</button>
+                                    <a th:href="@{/(statusFiltro=${statusFiltroAtivo})}" class="btn btn-sm btn-ghost">Cancelar</a>
+                                </form>
+                            </td>
+                        </th:block>
 
-  <h3 class="section-subtitle">Adicionar Novo Item</h3>
-
-  <form th:action="@{/pedidos/editar/adicionar-item}" method="POST" class="form-row">
-    <input type="hidden" name="pedidoId" th:value="${pedido.id}" />
-    <div class="form-group" style="flex: 3;">
-      <label for="produtoId">Produto</label>
+                        <th:block th:unless="${statusEditId != null AND p.id == statusEditId}">
+                            <td th:text="${p.id}">#</td>
+                            <td>
+                                <th:block th:if="${#strings.contains(p.nomeClienteObservacao, '(')}">
+                                    <span th:text="${#strings.substringBefore(p.nomeClienteObservacao, '(')}" style="font-weight: 600;"></span>
+                                    <br/>
+                                    <small style="color: var(--muted);" th:text="${'(' + #strings.substringAfter(p.nomeClienteObservacao, '(')}"></small>
+                                </th:block>
+                                <th:block th:unless="${#strings.contains(p.nomeClienteObservacao, '(')}">
+                                    <span th:text="${p.nomeClienteObservacao}" style="font-weight: 600;"></span>
+                                </th:block>
+                            </td>
+                            <td th:text="${#lists.size(p.itens)}">0</td>
+                            <td th:text="${'R$ ' + #numbers.formatDecimal(p.total,1,'POINT',2,'COMMA')}">R$ 0,00</td>
+                            <td>
+                                <th:block th:switch="${p.status.name()}">
+                                    <span th:case="'EM_PREPARO'" class="badge badge-warning" th:text="${p.status}"></span>
+                                    <span th:case="'PRONTO'" class="badge badge-info" th:text="${p.status}"></span>
+                                    <span th:case="'ENTREGUE'" class="badge badge-primary" th:text="${p.status}"></span>
+                                    <span th:case="'FINALIZADO'" class="badge badge-success" th:text="${p.status}"></span>
+                                    <span th:case="'CANCELADO'" class="badge badge-danger" th:text="${p.status}"></span>
+                                    <span th:case="*" class="badge" th:text="${p.status}"></span> 
+                                </th:block>
+                            </td>
+                            <td th:text="${#temporals.format(p.criadoEm, 'dd/MM HH:mm')}">agora</td>
+                            <td style="white-space: nowrap;">
+                                <a th:href="@{/pedidos/editar/{id}(id=${p.id})}" class="btn btn-sm">
+                                    Editar Itens
+                                </a>
+                                <a th:if="${p.status.name() != 'FINALIZADO' AND p.status.name() != 'CANCELADO'}"
+                                   th:href="@{/(statusEditId=${p.id}, statusFiltro=${statusFiltroAtivo})}" class="btn btn-sm btn-ghost">
+                                   Alterar Status
+                                </a>
+                                <form th:if="${p.status.name() == 'FINALIZADO' OR p.status.name() == 'CANCELADO'}"
+                                      th:action="@{/pedidos/atualizar-status}" method="POST" style="display: inline-block; margin-left: 6px;">
+                                    <input type="hidden" name="id" th:value="${p.id}" />
+                                    <input type="hidden" name="status" value="ABERTO" />
+                                    <input type="hidden" name="statusFiltro" th:value="${statusFiltroAtivo}" />
+                                    <button type="submit" class="btn btn-sm btn-ghost">Reabrir</button>
+                                </form>
+                            </td>
+                        </th:block>
+                    </tr>
+                    
+                    <tr class="itens-details-row" th:id="|itens-row-${p.id}|" style="height: 0px; overflow: hidden; transition: height 0.3s ease-out;">
+                        <td colspan="7" style="padding: 0px 50px;">
+                            <div classs="itens-details-content" style="padding-top: 10px; padding-bottom: 10px; background-color: var(--bg); overflow: hidden;">
+                                <div style="font-weight: 600; margin-bottom: 5px;">Itens do Pedido:</div>
+                                <ul>
+                                    <li th:each="item : ${p.itens}" 
+                                        th:text="${item.quantidade + 'x ' + item.produto.nome}">
+                                        1x Produto
+                                    </li>
+                                    <li th:if="${#lists.isEmpty(p.itens)}">Nenhum item neste pedido.</li>
+                                </ul>
+                            </div>
+                        </td>
+                    </tr>
+                </th:block>
+                <tr th:if="${#lists.isEmpty(ultimosPedidos)}">
+                    <td colspan="7" style="text-align: center; color: var(--muted);">
+                        Nenhum pedido encontrado para este filtro.
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+    
+    <style>
+      .badge-info { background-color: #007bff; }
+      .badge-primary { background-color: #6f42c1; }
       
-      <select id="produtoId" name="produtoId" placeholder="Digite ou selecione um produto...">
-        <option value="" selected>Digite ou selecione um produto...</option>
-        
-        <option th:each="prod : ${produtos}"
-                th:if="${prod.ativo}"
-                th:value="${prod.id}"
-                th:text="${prod.nome + ' (R$ ' + #numbers.formatDecimal(prod.preco,1,'POINT',2,'COMMA') + ')'}">
-          Produto (Preço)
-        </option>
-      </select>
-    </div>
-    <div class="form-group" style="flex: 1;">
-      <label for="quantidade">Quantidade</label>
-      <input type="number" id="quantidade" name="quantidade" value="1" min="1" class="form-control" />
-    </div>
-    <div class="form-group" style="align-self: flex-end;">
-      <button type="submit" class="btn">Adicionar</S>
-    </div>
-  </form>
+      .row-clickable { cursor: pointer; }
+      .row-clickable:hover { background-color: var(--bg); }
+      .row-disabled { opacity: 0.6; cursor: not-allowed; }
+      
+      .itens-details-row ul {
+          margin: 0;
+          padding-left: 20px;
+      }
+    </style>
 
-  <div class="form-actions mt-22">
-    <a th:href="@{/}" class="btn">Concluir Edição (Voltar)</a>
-  </div>
+    <script>
+        function toggleItens(pedidoId) {
+            if (document.querySelector('.row-disabled')) {
+                return;
+            }
+            var row = document.getElementById('itens-row-' + pedidoId);
+            var content = row.querySelector('.itens-details-content');
 
-  <style>
-    /* Estilos Tom Select (mantidos) */
-    .ts-control {
-      background: #FFFFFF !important;
-      color: #1F2937 !important;
-      border: 1px solid #E5E7EB !important;
-      border-radius: 8px !important;
-      padding: 10px 12px !important;
-      height: 48px; 
-    }
-    .ts-control.focus {
-      border-color: #E53E3E !important; 
-      box-shadow: 0 0 0 3px rgba(229, 62, 62, 0.1) !important;
-      outline: none !important;
-    }
-    .ts-dropdown {
-      background: #FFFFFF !important; 
-      border: 1px solid #E5E7EB !important;
-      border-radius: 8px !important;
-      box-shadow: 0 4px 6px rgba(0,0,0,0.05);
-    }
-    .ts-option {
-      color: #1F2937 !important; 
-      padding: 10px 12px !important;
-    }
-    .ts-option.active, .ts-option:hover {
-      background: #E53E3E !important; 
-      color: #FFFFFF !important;
-    }
-    .ts-control .item { color: var(--text) !important; }
-    .ts-control input::placeholder { color: var(--muted) !important; }
-    .ts-dropdown .ts-input {
-      background: var(--bg) !important;
-      color: var(--text) !important;
-      border: 1px solid var(--stroke) !important;
-    .ts-control .item {
-       color: #1F2937 !important;
-    }
-    .ts-control input::placeholder { 
-      color: #6B7280 !important;
-    }
-    .ts-dropdown .ts-input {
-      background: #F9FAFB !important; 
-      color: #1F2937 !important;
-      border: 1px solid #E5E7EB !important;
-      border-radius: 4px;
-      margin: 8px;
-      width: calc(100% - 16px);
-      padding: 8px 10px;
-    }
-    .ts-dropdown .ts-input:focus {
-      border-color: #E53E3E !important;
-      outline: none;
-    }
-  </style>
-  
-  <script>
-    document.addEventListener("DOMContentLoaded", () => {
-      new TomSelect('#produtoId', {
-        plugins: ['dropdown_input'],
-        plugins: ['dropdown_input'], 
-        create: false,
-        sortField: { field: "text", direction: "asc" }
-      });
-    });
-  </script>
-
+            if (row.classList.contains('active')) {
+                row.style.height = content.offsetHeight + 'px'; 
+                setTimeout(() => {
+                    row.style.height = '0';
+                    row.classList.remove('active');
+                }, 10);
+            } else {
+                row.classList.add('active');
+                row.style.height = content.offsetHeight + 'px'; 
+                row.addEventListener('transitionend', function handler() {
+                    if (row.classList.contains('active')) {
+                        row.style.height = 'auto';
+                    }
+                    row.removeEventListener('transitionend', handler);
+                });
+            }
+        }
+    </script>
 </section>
 </html>

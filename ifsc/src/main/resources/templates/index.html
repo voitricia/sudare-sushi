@@ -10,11 +10,16 @@
         <form th:action="@{/}" method="GET" style="display: flex; align-items: center; gap: 10px;">
             <label for="statusFiltro" style="font-weight: 600; margin-bottom: 0;">Filtrar por Status:</label>
             <select id="statusFiltro" name="statusFiltro" class="form-control" 
-                    style="width: 200px; height: 48px;" 
-                    onchange="this.form.submit()"> <option value="TODOS" th:selected="${statusFiltroAtivo == 'TODOS'}">Todos Ativos (Padrão)</option>
-                <option value="ABERTO" th:selected="${statusFiltroAtivo == 'ABERTO'}">Abertos</option>
-                <option value="EM_PREPARO" th:selected="${statusFiltroAtivo == 'EM_PREPARO'}">Em Preparo</option>
+                    style="width: 220px; height: 48px;" 
+                    onchange="this.form.submit()">
+                
+                <option value="NENHUM" th:selected="${statusFiltroAtivo == 'NENHUM'}">-- Selecione um filtro --</option>
+                <option value="TODOS" th:selected="${statusFiltroAtivo == 'TODOS'}">Fila (Ativos)</option>
+                <option value="ABERTO" th:selected="${statusFiltroAtivo == 'ABERTO'}">Abertos</option> <option value="EM_PREPARO" th:selected="${statusFiltroAtivo == 'EM_PREPARO'}">Em Preparo</option>
                 <option value="PRONTO" th:selected="${statusFiltroAtivo == 'PRONTO'}">Prontos</option>
+                <option value="FINALIZADO" th:selected="${statusFiltroAtivo == 'FINALIZADO'}">Finalizados</option>
+                <option value="CANCELADO" th:selected="${statusFiltroAtivo == 'CANCELADO'}">Cancelados</option>
+                <option value="TUDO" th:selected="${statusFiltroAtivo == 'TUDO'}">Todos (Histórico)</option>
             </select>
         </form>
     </div>
@@ -36,66 +41,107 @@
                 </tr>
             </thead>
             <tbody>
-                <tr th:each="p : ${ultimosPedidos}">
+                <th:block th:each="p : ${ultimosPedidos}">
+                    <tr th:classappend="${statusEditId != null AND p.id == statusEditId} ? 'row-disabled' : 'row-clickable'"
+                        th:onclick="|toggleItens('${p.id}')|">
 
-                    <th:block th:if="${statusEditId != null AND p.id == statusEditId}">
-                        <td style="vertical-align: middle;" th:text="${p.id}">#</td>
-                        <td style="vertical-align: middle;" th:text="${p.nomeClienteObservacao}">Cliente</td>
-                        <td style="vertical-align: middle;" th:text="${#lists.size(p.itens)}">0</td>
-                        <td style="vertical-align: middle;"
-                            th:text="${'R$ ' + #numbers.formatDecimal(p.total,1,'POINT',2,'COMMA')}">R$ 0,00</td>
+                        <th:block th:if="${statusEditId != null AND p.id == statusEditId}">
+                            <td style="vertical-align: middle;" th:text="${p.id}">#</td>
+                            <td style="vertical-align: middle;">
+                                <th:block th:if="${#strings.contains(p.nomeClienteObservacao, '(')}">
+                                    <span th:text="${#strings.substringBefore(p.nomeClienteObservacao, '(')}" style="font-weight: 600;"></span>
+                                    <br/>
+                                    <small style="color: var(--muted);" th:text="${'(' + #strings.substringAfter(p.nomeClienteObservacao, '(')}"></small>
+                                </th:block>
+                                <th:block th:unless="${#strings.contains(p.nomeClienteObservacao, '(')}">
+                                    <span th:text="${p.nomeClienteObservacao}" style="font-weight: 600;"></span>
+                                </th:block>
+                            </td>
+                            <td style="vertical-align: middle;" th:text="${#lists.size(p.itens)}">0</td>
+                            <td style="vertical-align: middle;"
+                                th:text="${'R$ ' + #numbers.formatDecimal(p.total,1,'POINT',2,'COMMA')}">R$ 0,00</td>
 
-                        <td colspan="3" style="vertical-align: middle;">
-                            <form th:action="@{/pedidos/atualizar-status}" method="POST"
-                                  style="display: flex; align-items: center; gap: 6px;">
-                                <input type="hidden" name="id" th:value="${p.id}" />
-                                <input type="hidden" name="statusFiltro" th:value="${statusFiltroAtivo}" />
+                            <td colspan="3" style="vertical-align: middle;">
+                                <form th:action="@{/pedidos/atualizar-status}" method="POST"
+                                      style="display: flex; align-items: center; gap: 6px;">
+                                    <input type="hidden" name="id" th:value="${p.id}" />
+                                    <input type="hidden" name="statusFiltro" th:value="${statusFiltroAtivo}" />
+                                    <select name="status" class="form-control" style="height: 34px; padding: 0 10px; min-width: 140px;">
+                                        <option value="ABERTO"     th:selected="${p.status.name() == 'ABERTO'}">Aberto</option>
+                                        <option value="EM_PREPARO" th:selected="${p.status.name() == 'EM_PREPARO'}">Em Preparo</option>
+                                        <option value="PRONTO"     th:selected="${p.status.name() == 'PRONTO'}">Pronto</option>
+                                        <option value="ENTREGUE"   th:selected="${p.status.name() == 'ENTREGUE'}">Entregue</option>
+                                        <option value="FINALIZADO" th:selected="${p.status.name() == 'FINALIZADO'}">Finalizado</option>
+                                        <option value="CANCELADO"  th:selected="${p.status.name() == 'CANCELADO'}">Cancelado</option>
+                                    </select>
+                                    <span style="color: var(--muted); margin-left: 10px; white-space: nowrap;"
+                                          th:text="${#temporals.format(p.criadoEm, 'dd/MM HH:mm')}">
+                                    </span>
+                                    <button type="submit" class="btn btn-sm" style="margin-left: auto;">Salvar</button>
+                                    <a th:href="@{/(statusFiltro=${statusFiltroAtivo})}" class="btn btn-sm btn-ghost">Cancelar</a>
+                                </form>
+                            </td>
+                        </th:block>
 
-                                <select name="status" class="form-control"
-                                        style="height: 34px; padding: 0 10px; min-width: 140px;">
-                                    <option value="ABERTO"     th:selected="${p.status.name() == 'ABERTO'}">Aberto</option>
-                                    <option value="EM_PREPARO" th:selected="${p.status.name() == 'EM_PREPARO'}">Em Preparo</option>
-                                    <option value="PRONTO"     th:selected="${p.status.name() == 'PRONTO'}">Pronto</option>
-                                    <option value="ENTREGUE"   th:selected="${p.status.name() == 'ENTREGUE'}">Entregue</option>
-                                    <option value="FINALIZADO" th:selected="${p.status.name() == 'FINALIZADO'}">Finalizado</option>
-                                    <option value="CANCELADO"  th:selected="${p.status.name() == 'CANCELADO'}">Cancelado</option>
-                                </select>
-                                <span style="color: var(--muted); margin-left: 10px; white-space: nowrap;"
-                                      th:text="${#temporals.format(p.criadoEm, 'dd/MM HH:mm')}">
-                                </span>
-                                <button type="submit" class="btn btn-sm" style="margin-left: auto;">Salvar</button>
-                                <a th:href="@{/(statusFiltro=${statusFiltroAtivo})}" class="btn btn-sm btn-ghost">Cancelar</a>
-                            </form>
+                        <th:block th:unless="${statusEditId != null AND p.id == statusEditId}">
+                            <td th:text="${p.id}">#</td>
+                            <td>
+                                <th:block th:if="${#strings.contains(p.nomeClienteObservacao, '(')}">
+                                    <span th:text="${#strings.substringBefore(p.nomeClienteObservacao, '(')}" style="font-weight: 600;"></span>
+                                    <br/>
+                                    <small style="color: var(--muted);" th:text="${'(' + #strings.substringAfter(p.nomeClienteObservacao, '(')}"></small>
+                                </th:block>
+                                <th:block th:unless="${#strings.contains(p.nomeClienteObservacao, '(')}">
+                                    <span th:text="${p.nomeClienteObservacao}" style="font-weight: 600;"></span>
+                                </th:block>
+                            </td>
+                            <td th:text="${#lists.size(p.itens)}">0</td>
+                            <td th:text="${'R$ ' + #numbers.formatDecimal(p.total,1,'POINT',2,'COMMA')}">R$ 0,00</td>
+                            <td>
+                                <th:block th:switch="${p.status.name()}">
+                                    <span th:case="'EM_PREPARO'" class="badge badge-warning" th:text="${p.status}"></span>
+                                    <span th:case="'PRONTO'" class="badge badge-info" th:text="${p.status}"></span>
+                                    <span th:case="'ENTREGUE'" class="badge badge-primary" th:text="${p.status}"></span>
+                                    <span th:case="'FINALIZADO'" class="badge badge-success" th:text="${p.status}"></span>
+                                    <span th:case="'CANCELADO'" class="badge badge-danger" th:text="${p.status}"></span>
+                                    <span th:case="*" class="badge" th:text="${p.status}"></span> 
+                                </th:block>
+                            </td>
+                            <td th:text="${#temporals.format(p.criadoEm, 'dd/MM HH:mm')}">agora</td>
+                            <td style="white-space: nowrap;">
+                                <a th:href="@{/pedidos/editar/{id}(id=${p.id})}" class="btn btn-sm">
+                                    Editar Itens
+                                </a>
+                                <a th:if="${p.status.name() != 'FINALIZADO' AND p.status.name() != 'CANCELADO'}"
+                                   th:href="@{/(statusEditId=${p.id}, statusFiltro=${statusFiltroAtivo})}" class="btn btn-sm btn-ghost">
+                                   Alterar Status
+                                </a>
+                                <form th:if="${p.status.name() == 'FINALIZADO' OR p.status.name() == 'CANCELADO'}"
+                                      th:action="@{/pedidos/atualizar-status}" method="POST" style="display: inline-block; margin-left: 6px;">
+                                    <input type="hidden" name="id" th:value="${p.id}" />
+                                    <input type="hidden" name="status" value="ABERTO" />
+                                    <input type="hidden" name="statusFiltro" th:value="${statusFiltroAtivo}" />
+                                    <button type="submit" class="btn btn-sm btn-ghost">Reabrir</button>
+                                </form>
+                            </td>
+                        </th:block>
+                    </tr>
+                    
+                    <tr class="itens-details-row" th:id="|itens-row-${p.id}|" style="height: 0px; overflow: hidden; transition: height 0.3s ease-out;">
+                        <td colspan="7" style="padding: 0px 50px;">
+                            <div classs="itens-details-content" style="padding-top: 10px; padding-bottom: 10px; background-color: var(--bg); overflow: hidden;">
+                                <div style="font-weight: 600; margin-bottom: 5px;">Itens do Pedido:</div>
+                                <ul>
+                                    <li th:each="item : ${p.itens}" 
+                                        th:text="${item.quantidade + 'x ' + item.produto.nome}">
+                                        1x Produto
+                                    </li>
+                                    <li th:if="${#lists.isEmpty(p.itens)}">Nenhum item neste pedido.</li>
+                                </ul>
+                            </div>
                         </td>
-                    </th:block>
-
-                    <th:block th:unless="${statusEditId != null AND p.id == statusEditId}">
-                        <td th:text="${p.id}">#</td>
-                        <td th:text="${p.nomeClienteObservacao}">Cliente</td>
-                        <td th:text="${#lists.size(p.itens)}">0</td>
-                        <td th:text="${'R$ ' + #numbers.formatDecimal(p.total,1,'POINT',2,'COMMA')}">R$ 0,00</td>
-                        <td>
-                            <th:block th:switch="${p.status.name()}">
-                                <span th:case="'EM_PREPARO'" class="badge badge-warning" th:text="${p.status}"></span>
-                                <span th:case="'PRONTO'" class="badge badge-info" th:text="${p.status}"></span>
-                                <span th:case="'ENTREGUE'" class="badge badge-primary" th:text="${p.status}"></span>
-                                <span th:case="'FINALIZADO'" class="badge badge-success" th:text="${p.status}"></span>
-                                <span th:case="'CANCELADO'" class="badge badge-danger" th:text="${p.status}"></span>
-                                <span th:case="*" class="badge" th:text="${p.status}"></span> </th:block>
-                        </td>
-                        <td th:text="${#temporals.format(p.criadoEm, 'dd/MM HH:mm')}">agora</td>
-                        <td style="white-space: nowrap;">
-                            <a th:href="@{/pedidos/editar/{id}(id=${p.id})}" class="btn btn-sm">
-                                Editar Itens
-                            </a>
-                            <a th:if="${p.status.name() != 'FINALIZADO' AND p.status.name() != 'CANCELADO'}"
-                               th:href="@{/(statusEditId=${p.id}, statusFiltro=${statusFiltroAtivo})}" class="btn btn-sm btn-ghost">
-                                Alterar Status
-                            </a>
-                        </td>
-                    </th:block>
-                </tr>
-
+                    </tr>
+                </th:block>
                 <tr th:if="${#lists.isEmpty(ultimosPedidos)}">
                     <td colspan="7" style="text-align: center; color: var(--muted);">
                         Nenhum pedido encontrado para este filtro.
@@ -106,9 +152,44 @@
     </div>
     
     <style>
-      .badge-info { background-color: #007bff; /* Azul */ }
-      .badge-primary { background-color: #6f42c1; /* Roxo */ }
+      .badge-info { background-color: #007bff; }
+      .badge-primary { background-color: #6f42c1; }
+      
+      .row-clickable { cursor: pointer; }
+      .row-clickable:hover { background-color: var(--bg); }
+      .row-disabled { opacity: 0.6; cursor: not-allowed; }
+      
+      .itens-details-row ul {
+          margin: 0;
+          padding-left: 20px;
+      }
     </style>
 
+    <script>
+        function toggleItens(pedidoId) {
+            if (document.querySelector('.row-disabled')) {
+                return;
+            }
+            var row = document.getElementById('itens-row-' + pedidoId);
+            var content = row.querySelector('.itens-details-content');
+
+            if (row.classList.contains('active')) {
+                row.style.height = content.offsetHeight + 'px'; 
+                setTimeout(() => {
+                    row.style.height = '0';
+                    row.classList.remove('active');
+                }, 10);
+            } else {
+                row.classList.add('active');
+                row.style.height = content.offsetHeight + 'px'; 
+                row.addEventListener('transitionend', function handler() {
+                    if (row.classList.contains('active')) {
+                        row.style.height = 'auto';
+                    }
+                    row.removeEventListener('transitionend', handler);
+                });
+            }
+        }
+    </script>
 </section>
 </html>

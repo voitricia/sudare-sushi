@@ -16,6 +16,14 @@
     </div>
 
     <div class="form-group mt-16">
+      <label for="categoria">Categoria</label>
+      <select id="categoria" th:field="*{categoria}" class="form-control" required>
+        <option value="" disabled selected>-- Selecione uma categoria --</option>
+        <option th:each="cat : ${categorias}" th:value="${cat}" th:text="${cat}"></option>
+      </select>
+      <div class="form-error" th:if="${#fields.hasErrors('categoria')}" th:errors="*{categoria}"></div>
+    </div>
+    <div class="form-group mt-16">
       <label for="preco">Preço (R$)</label>
       <input type="number" id="preco" th:field="*{preco}" step="0.01" class="form-control" />
       <div class="form-error" th:if="${#fields.hasErrors('preco')}" th:errors="*{preco}"></div>
@@ -32,12 +40,12 @@
     </div>
 
   </form>
-
+  
   <style>
     .form-group label { display: block; margin-bottom: 4px; font-weight: 600; }
     .form-control {
-      background: var(--panel-2); color: var(--text); border: 1px solid var(--stroke);
-      border-radius: 8px; padding: 10px 12px; width: 100%;
+      background: var(--panel); color: var(--text); border: 1px solid var(--stroke);
+      border-radius: 8px; padding: 10px 12px; width: 100%; height: 48px;
     }
     .form-control:focus { border-color: var(--brand); outline: none; }
     .form-error { color: var(--brand); font-size: 12px; margin-top: 4px; }
