@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="pt-br" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{_layout :: layout('Cardápio', 'cardapio', ~{::content})}">
+
+<section class="section" th:fragment="content">
+
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+        <h2 class="section-title" style="margin: 0;">Itens do cardápio</h2>
+        <a class="btn" th:href="@{/produtos/novo}">Adicionar Produto</a>
+    </div>
+
+    <div class="table-wrap">
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Produto</th>
+                    <th>Preço</th>
+                    <th>Status</th>
+                    <th>Ações</th>
+                </tr>
+            </thead>
+            <tbody>
+            
+                <th:block th:each="entry : ${produtosAgrupados}">
+                    <tr style="background-color: var(--bg);">
+                        <th colspan="4" style="font-size: 1.1em; color: var(--text); padding-left: 15px;">
+                            <span th:text="${entry.key}">CATEGORIA</span>
+                        </th>
+                    </tr>
+                    
+                    <tr th:each="prod : ${entry.value}">
+                        <td style="font-weight: 600;" th:text="${prod.nome}">Nome do Produto</td>
+                        <td th:text="${'R$ ' + #numbers.formatDecimal(prod.preco,1,'POINT',2,'COMMA')}">R$ 0,00</td>
+                        <td>
+                            <span th:if="${prod.ativo}" class="badge badge-success">Ativo</span>
+                            <span th:unless="${prod.ativo}" class="badge badge-danger">Inativo</span>
+                        </td>
+                        <td style="white-space: nowrap;">
+                            <a th:href="@{/produtos/editar/{id}(id=${prod.id})}" class="btn btn-sm btn-ghost">
+                                Editar
+                            </a>
+                            <form th:if="${prod.ativo}" th:action="@{/cardapio/atualizar-ativo}" method="POST" style="display: inline-block; margin-left: 6px;">
+                                <input type="hidden" name="id" th:value="${prod.id}" />
+                                <input type="hidden" name="ativo" value="false" />
+                                <button type="submit" class="btn btn-sm btn-ghost-danger">Desativar</button>
+                            </form>
+                            <form th:unless="${prod.ativo}" th:action="@{/cardapio/atualizar-ativo}" method="POST" style="display: inline-block; margin-left: 6px;">
+                                <input type="hidden" name="id" th:value="${prod.id}" />
+                                <input type="hidden" name="ativo" value="true" />
+                                <button type="submit" class="btn btn-sm btn-ghost-success">Ativar</button>
+                            </form>
+                        </td>
+                    </tr>
+                </th:block>
+                <tr th:if="${#maps.isEmpty(produtosAgrupados)}">
+                    <td colspan="4" style="text-align: center; color: var(--muted);">
+                        Nenhum produto cadastrado.
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+</section>
+</html>

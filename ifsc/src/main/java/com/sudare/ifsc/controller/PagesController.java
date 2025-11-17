@@ -45,6 +45,8 @@ public class PagesController {
         model.addAttribute("ultimosPedidos", pedidoService.buscarPedidosHome(statusFiltro));
         model.addAttribute("statusEditId", statusEditId); 
         
+        // === CORREÇÃO AQUI ===
+        // O padrão agora é "ABERTO"
         String filtroAtivo = (statusFiltro == null || statusFiltro.isEmpty()) ? "ABERTO" : statusFiltro;
         model.addAttribute("statusFiltroAtivo", filtroAtivo);
         
@@ -56,10 +58,13 @@ public class PagesController {
                                         @RequestParam(name = "statusFiltro", required = false) String statusFiltro) {
         pedidoService.atualizarStatus(id, status);
         
+        // === CORREÇÃO AQUI ===
+        // Se o filtro estiver vazio, redireciona para "ABERTO"
         String filtro = (statusFiltro == null || statusFiltro.isEmpty()) ? "ABERTO" : statusFiltro;
         return "redirect:/?statusFiltro=" + filtro;
     }
 
+    // ... (Restante do controller permanece igual) ...
     @GetMapping("/relatorios")
     public String relatorios(Model model,
                              @RequestParam(name = "periodo", required = false) String periodo,

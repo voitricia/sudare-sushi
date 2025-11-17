@@ -11,6 +11,7 @@ public record ProdutoDTO(
         @NotBlank(message = "O nome é obrigatório")
         String nome,
         
+        // === NOVO CAMPO ===
         @NotBlank(message = "A categoria é obrigatória")
         String categoria,
 

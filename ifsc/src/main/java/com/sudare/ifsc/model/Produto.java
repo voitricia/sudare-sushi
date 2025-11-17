@@ -15,10 +15,13 @@ public class Produto {
     @NotNull @DecimalMin("0.0")
     private BigDecimal preco;
 
+    // === NOVO CAMPO ===
     @NotBlank
     private String categoria;
 
     private boolean ativo = true;
+
+    // --- Getters e Setters ---
 
     public Long getId() { 
         return id; 
@@ -39,6 +42,7 @@ public class Produto {
         this.preco = preco; 
     }
     
+    // === GETTER E SETTER NOVOS ===
     public String getCategoria() {
         return categoria;
     }

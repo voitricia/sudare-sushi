@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="pt-br" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{_layout :: layout(${produto.id == null ? 'Novo Produto' : 'Editar Produto'}, 'cardapio', ~{::content})}">
+
+<section class="section" th:fragment="content">
+  <h2 class="section-title" th:text="*{produto.id == null} ? 'Novo Produto' : 'Editar Produto'"></h2>
+
+  <form method="POST" th:action="@{/produtos/salvar}" th:object="${produto}">
+    
+    <input type="hidden" th:field="*{id}" />
+
+    <div class="form-group mt-16">
+      <label for="nome">Nome</label>
+      <input type="text" id="nome" th:field="*{nome}" class="form-control" />
+      <div class="form-error" th:if="${#fields.hasErrors('nome')}" th:errors="*{nome}"></div>
+    </div>
+
+    <div class="form-group mt-16">
+      <label for="categoria">Categoria</label>
+      <select id="categoria" th:field="*{categoria}" class="form-control" required>
+        <option value="" disabled selected>-- Selecione uma categoria --</option>
+        <option th:each="cat : ${categorias}" th:value="${cat}" th:text="${cat}"></option>
+      </select>
+      <div class="form-error" th:if="${#fields.hasErrors('categoria')}" th:errors="*{categoria}"></div>
+    </div>
+    <div class="form-group mt-16">
+      <label for="preco">Preço (R$)</label>
+      <input type="number" id="preco" th:field="*{preco}" step="0.01" class="form-control" />
+      <div class="form-error" th:if="${#fields.hasErrors('preco')}" th:errors="*{preco}"></div>
+    </div>
+
+    <div class="form-check mt-16">
+      <input type="checkbox" id="ativo" th:field="*{ativo}" class="form-check-input" />
+      <label for="ativo">Produto ativo (visível no cardápio)</label>
+    </div>
+
+    <div class="form-actions mt-22">
+      <button type="submit" class="btn">Salvar Produto</button>
+      <a th:href="@{/cardapio}" class="btn btn-ghost">Cancelar</a>
+    </div>
+
+  </form>
+  
+  <style>
+    .form-group label { display: block; margin-bottom: 4px; font-weight: 600; }
+    .form-control {
+      background: var(--panel); color: var(--text); border: 1px solid var(--stroke);
+      border-radius: 8px; padding: 10px 12px; width: 100%; height: 48px;
+    }
+    .form-control:focus { border-color: var(--brand); outline: none; }
+    .form-error { color: var(--brand); font-size: 12px; margin-top: 4px; }
+    .form-check { display: flex; align-items: center; gap: 8px; }
+  </style>
+
+</section>
+</html>
