@@ -76,10 +76,3 @@ INSERT INTO PRODUTO (nome, preco, ativo, categoria) VALUES
 /* Itens "Sob Consulta" (preço de 1 real para multiplicar pela quantidade) */
 ('Espumantes (Sob Consulta)', 1.00, true, 'BEBIDAS'),
 ('Vinhos (Sob Consulta)', 1.00, true, 'BEBIDAS');
-
-
-/* ========================================================== */
-/* === PEDIDOS DE TESTE (Removidos para iniciar zerado) === */
-/* ========================================================== */
-
-/* --- Nenhum pedido de teste será criado --- */

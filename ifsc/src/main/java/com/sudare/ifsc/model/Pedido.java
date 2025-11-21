@@ -15,8 +15,6 @@ public class Pedido {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-
-    // --- RELAÇÃO COM CLIENTE REMOVIDA ---
     
     private String nomeClienteObservacao;
 
@@ -41,7 +39,6 @@ public class Pedido {
     @Column(nullable = false)
     private OffsetDateTime atualizadoEm;
 
-    // --- Métodos Auxiliares ---
 
     public void adicionarItem(ItemPedido item) {
         itens.add(item);
@@ -64,8 +61,6 @@ public class Pedido {
         if (!taxaServico) return BigDecimal.ZERO;
         return getSubtotalItens().multiply(new BigDecimal("0.10"));
     }
-
-    // --- Getters e Setters ---
 
     public Long getId() { 
         return id; 

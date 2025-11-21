@@ -35,7 +35,6 @@ public class PedidoService {
         this.itemPedidoRepository = itemPedidoRepository;
     }
 
-    // ... (métodos listar, buscar, atualizarStatus, etc. permanecem iguais) ...
     public List<Pedido> listar(){ 
         return pedidoRepository.findAll(); 
     }
@@ -57,46 +56,35 @@ public class PedidoService {
         return pedidoRepository.save(p);
     }
 
-    /**
-     * Busca os pedidos para a Home, com filtro de status.
-     * === ATUALIZADO COM "ABERTO" COMO PADRÃO ===
-     */
     @Transactional(readOnly = true)
     public List<Pedido> buscarPedidosHome(String statusFiltro) {
         Pageable pageable = PageRequest.of(0, 20, Sort.by("criadoEm").descending());
         
-        // 1. NOVO PADRÃO: Se filtro for nulo ou vazio, define como "ABERTO"
         if (statusFiltro == null || statusFiltro.isEmpty()) {
             statusFiltro = "ABERTO";
         }
 
-        // 2. Se filtro for "NENHUM", retorna lista vazia
         if (statusFiltro.equals("NENHUM")) {
-            return new ArrayList<>(); // Retorna lista vazia
+            return new ArrayList<>(); 
         }
 
-        // 3. Padrão "TODOS" (Fila Ativos)
         if (statusFiltro.equals("TODOS")) {
             List<StatusPedido> statusesAtivos = List.of(StatusPedido.ABERTO, StatusPedido.EM_PREPARO, StatusPedido.PRONTO);
             return pedidoRepository.findHomeByStatusInWithItems(statusesAtivos, pageable);
         }
 
-        // 4. Filtro "TUDO" (Histórico)
         if (statusFiltro.equals("TUDO")) {
             return pedidoRepository.findHomeAllWithItems(pageable);
         }
 
-        // 5. Caso contrário, tenta filtrar por um status específico (ABERTO, FINALIZADO, etc.)
         try {
             StatusPedido status = StatusPedido.valueOf(statusFiltro);
             return pedidoRepository.findHomeByStatusWithItems(status, pageable);
         } catch (IllegalArgumentException e) {
-            // Se o filtro for inválido, volta para o padrão (lista vazia)
             return new ArrayList<>();
         }
     }
 
-    // ... (métodos criarNovoPedido, adicionarItem, removerItem, etc. permanecem iguais) ...
     @Transactional
     public Pedido criarNovoPedido(String nomeObservacao) {
         Pedido pedido = new Pedido();

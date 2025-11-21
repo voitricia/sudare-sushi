@@ -14,7 +14,6 @@ import java.util.Optional;
 
 public interface PedidoRepository extends JpaRepository<Pedido, Long> {
 
-    // --- MÉTODOS EXISTENTES (Edição e Relatórios) ---
     @Query("SELECT p FROM Pedido p LEFT JOIN FETCH p.itens WHERE p.id = :id")
     Optional<Pedido> findByIdCompleto(@Param("id") Long id);
 
@@ -30,15 +29,6 @@ public interface PedidoRepository extends JpaRepository<Pedido, Long> {
     @Query("SELECT p FROM Pedido p " +
            "WHERE p.status = :status ORDER BY p.criadoEm DESC")
     List<Pedido> findAllPedidosPorStatus(@Param("status") StatusPedido status);
-
-    
-    // --- MÉTODOS ANTIGOS (Spring Data gerado) - Agora substituídos pelos de baixo ---
-    // List<Pedido> findAllByStatusOrderByCriadoEmDesc(StatusPedido status, Pageable pageable);
-    // List<Pedido> findAllByStatusInOrderByCriadoEmDesc(Collection<StatusPedido> statuses, Pageable pageable);
-    // List<Pedido> findAllByOrderByCriadoEmDesc(Pageable pageable);
-
-
-    // === NOVOS MÉTODOS PARA A HOME (COM JOIN FETCH) ===
     
     @Query("SELECT DISTINCT p FROM Pedido p LEFT JOIN FETCH p.itens i LEFT JOIN FETCH i.produto prod " +
            "WHERE p.status = :status ORDER BY p.criadoEm DESC")

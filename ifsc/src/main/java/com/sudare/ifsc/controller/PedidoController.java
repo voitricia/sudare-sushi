@@ -16,7 +16,6 @@ public class PedidoController {
 
     @GetMapping
     public List<Pedido> listar(){ 
-        // Agora o service.listar() será encontrado
         return service.listar(); 
     }
 
@@ -24,17 +23,6 @@ public class PedidoController {
     public Pedido buscar(@PathVariable Long id){ 
         return service.buscar(id); 
     }
-
-    /* ==========================================================
-    === CORREÇÃO: Método comentado ===
-    ==========================================================
-    @PostMapping
-    @ResponseStatus(HttpStatus.CREATED)
-    public Pedido criar(@RequestBody @Valid PedidoDTO dto){ 
-        return service.criar(dto); 
-    }
-    ==========================================================
-    */
 
     @PatchMapping("/{id}/status")
     public Pedido atualizarStatus(@PathVariable Long id, @RequestParam StatusPedido status){

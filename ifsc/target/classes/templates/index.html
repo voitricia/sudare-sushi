@@ -163,7 +163,6 @@
       .row-clickable:hover {
           background-color: var(--bg);
       }
-      /* Adiciona fundo quando a linha está ativa */
       .row-clickable.active {
           background-color: var(--bg);
       }
@@ -173,28 +172,23 @@
           cursor: not-allowed;
       }
       
-      /* === CSS DA ANIMAÇÃO (Refinado) === */
       .itens-details-row {
-          /* Remove a borda padrão da tabela */
           border-bottom: none;
       }
       .itens-details-row td {
-          /* Remove o padding da célula da tabela para a animação ser suave */
           padding: 0;
       }
       .itens-details-content {
           background-color: var(--bg);
-          overflow: hidden; /* Essencial para a animação */
+          overflow: hidden; 
           
-          /* Estado inicial (fechado) */
           max-height: 0;
           transition: max-height 0.3s ease-out, padding 0.3s ease-out;
       }
       
-      /* Estado final (aberto) */
       .itens-details-row.active .itens-details-content {
-          max-height: 500px; /* Um valor alto o suficiente para caber o conteúdo */
-          padding: 20px 50px; /* Padding interno (só aparece quando aberto) */
+          max-height: 500px; 
+          padding: 20px 50px; 
           transition: max-height 0.4s ease-in, padding 0.4s ease-in;
       }
       
@@ -206,17 +200,14 @@
 
     <script>
         function toggleItens(clickedRow, pedidoId) {
-            // Impede o clique se estiver no modo de edição de status
             if (clickedRow.classList.contains('row-disabled')) {
                 return;
             }
             
             var row = document.getElementById('itens-row-' + pedidoId);
 
-            // Alterna a classe na linha principal (clicada)
             clickedRow.classList.toggle('active');
             
-            // Alterna a classe na linha de detalhes (que abre)
             row.classList.toggle('active');
         }
     </script>
