@@ -39,7 +39,6 @@ public class Pedido {
     @Column(nullable = false)
     private OffsetDateTime atualizadoEm;
 
-
     public void adicionarItem(ItemPedido item) {
         itens.add(item);
         item.setPedido(this);

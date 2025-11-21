@@ -62,8 +62,7 @@ INSERT INTO PRODUTO (nome, preco, ativo, categoria) VALUES
 ('Temaki Skin', 32.00, true, 'TEMAKIS'),
 ('Temaki Sudarê', 54.00, true, 'TEMAKIS'),
 ('Temaki Vegetariano ou Vegano', 32.00, true, 'TEMAKIS'),
-
-/* === NOVOS ITENS (BEBIDAS) === */
+/* BEBIDAS */
 ('Refrigerante', 8.00, true, 'BEBIDAS'),
 ('Água', 7.00, true, 'BEBIDAS'),
 ('Sucos', 12.00, true, 'BEBIDAS'),
@@ -73,6 +72,6 @@ INSERT INTO PRODUTO (nome, preco, ativo, categoria) VALUES
 ('Saquerinha', 32.00, true, 'BEBIDAS'),
 ('Caipira Vodka', 32.00, true, 'BEBIDAS'),
 ('Caipira Cachaça', 28.00, true, 'BEBIDAS'),
-/* Itens "Sob Consulta" (preço de 1 real para multiplicar pela quantidade) */
 ('Espumantes (Sob Consulta)', 1.00, true, 'BEBIDAS'),
 ('Vinhos (Sob Consulta)', 1.00, true, 'BEBIDAS');
+
