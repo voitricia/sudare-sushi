@@ -3,11 +3,11 @@ package com.sudare.ifsc.model;
 import jakarta.persistence.*;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
-
 import java.math.BigDecimal;
 import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 
 @Entity
 public class Pedido {
@@ -15,7 +15,7 @@ public class Pedido {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    
+
     private String nomeClienteObservacao;
 
     @Enumerated(EnumType.STRING)
@@ -26,9 +26,10 @@ public class Pedido {
     private BigDecimal total = BigDecimal.ZERO;
 
     @Column(nullable = false)
-    private boolean taxaServico = false; 
+    private boolean taxaServico = false;
 
     @OneToMany(mappedBy = "pedido", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    @JsonManagedReference
     private List<ItemPedido> itens = new ArrayList<>();
 
     @CreationTimestamp
@@ -61,67 +62,27 @@ public class Pedido {
         return getSubtotalItens().multiply(new BigDecimal("0.10"));
     }
 
-    public Long getId() { 
-        return id; 
-    }
+    public Long getId() { return id; }
+    public void setId(Long id) { this.id = id; }
 
-    public void setId(Long id) { 
-        this.id = id; 
-    }
+    public String getNomeClienteObservacao() { return nomeClienteObservacao; }
+    public void setNomeClienteObservacao(String nomeClienteObservacao) { this.nomeClienteObservacao = nomeClienteObservacao; }
 
-    public String getNomeClienteObservacao() { 
-        return nomeClienteObservacao; 
-    }
+    public StatusPedido getStatus() { return status; }
+    public void setStatus(StatusPedido status) { this.status = status; }
 
-    public void setNomeClienteObservacao(String nomeClienteObservacao) { 
-        this.nomeClienteObservacao = nomeClienteObservacao; 
-    }
+    public BigDecimal getTotal() { return total; }
+    public void setTotal(BigDecimal total) { this.total = total; }
 
-    public StatusPedido getStatus() { 
-        return status; 
-    }
-    
-    public void setStatus(StatusPedido status) { 
-        this.status = status; 
-    }
+    public List<ItemPedido> getItens() { return itens; }
+    public void setItens(List<ItemPedido> itens) { this.itens = itens; }
 
-    public BigDecimal getTotal() { 
-        return total; 
-    }
-    
-    public void setTotal(BigDecimal total) { 
-        this.total = total; 
-    }
+    public OffsetDateTime getCriadoEm() { return criadoEm; }
+    public void setCriadoEm(OffsetDateTime criadoEm) { this.criadoEm = criadoEm; }
 
-    public List<ItemPedido> getItens() { 
-        return itens; 
-    }
+    public OffsetDateTime getAtualizadoEm() { return atualizadoEm; }
+    public void setAtualizadoEm(OffsetDateTime atualizadoEm) { this.atualizadoEm = atualizadoEm; }
 
-    public void setItens(List<ItemPedido> itens) { 
-        this.itens = itens; 
-    }
-
-    public OffsetDateTime getCriadoEm() { 
-        return criadoEm; 
-    }
-
-    public void setCriadoEm(OffsetDateTime criadoEm) { 
-        this.criadoEm = criadoEm; 
-    }
-
-    public OffsetDateTime getAtualizadoEm() { 
-        return atualizadoEm; 
-    }
-
-    public void setAtualizadoEm(OffsetDateTime atualizadoEm) { 
-        this.atualizadoEm = atualizadoEm; 
-    }
-    
-    public boolean isTaxaServico() { 
-        return taxaServico; 
-    }
-
-    public void setTaxaServico(boolean taxaServico) { 
-        this.taxaServico = taxaServico; 
-    }
+    public boolean isTaxaServico() { return taxaServico; }
+    public void setTaxaServico(boolean taxaServico) { this.taxaServico = taxaServico; }
 }
