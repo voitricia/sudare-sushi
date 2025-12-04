@@ -5,6 +5,8 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import java.math.BigDecimal;
 
+// DTO utilizado para criar ou editar produtos.
+// Inclui validações para garantir que nome, categoria e preço sejam informados corretamente.
 public record ProdutoDTO(
         Long id,
 

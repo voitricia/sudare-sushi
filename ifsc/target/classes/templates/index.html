@@ -1,18 +1,22 @@
 <!doctype html>
 <html lang="pt-br" xmlns:th="http://www.thymeleaf.org"
+      <!-- Usa o layout padrão e define o título da página como "Home • Sudarê Sushi" -->
       th:replace="~{_layout :: layout(${'Home • Sudarê Sushi'}, 'home', ~{::content})}">
 
 <section th:fragment="content">
 
+    <!-- Header da página: botão de novo pedido + filtro por status -->
     <div class="form-row" style="justify-content: space-between; align-items: center;">
         <a class="btn" th:href="@{/pedidos/novo}">Abrir Novo Pedido</a>
 
+        <!-- Form de filtro por status, dispara automaticamente ao mudar o select -->
         <form th:action="@{/}" method="GET" style="display: flex; align-items: center; gap: 10px;">
             <label for="statusFiltro" style="font-weight: 600; margin-bottom: 0;">Filtrar por Status:</label>
             <select id="statusFiltro" name="statusFiltro" class="form-control" 
                     style="width: 220px; height: 48px;" 
                     onchange="this.form.submit()">
                 
+                <!-- Opções de filtro, marcando a selecionada com base em statusFiltroAtivo -->
                 <option value="NENHUM" th:selected="${statusFiltroAtivo == 'NENHUM'}">-- Selecione um filtro --</option>
                 <option value="TODOS" th:selected="${statusFiltroAtivo == 'TODOS'}">Fila (Ativos)</option>
                 <option value="ABERTO" th:selected="${statusFiltroAtivo == 'ABERTO'}">Abertos</option>
@@ -29,6 +33,7 @@
 
     <h2 class="section-title mt-22">Últimos pedidos</h2>
 
+    <!-- Tabela principal de pedidos da home -->
     <div class="table-wrap">
         <table class="table">
             <thead>
@@ -43,14 +48,18 @@
                 </tr>
             </thead>
             <tbody>
+                <!-- Loop pelos pedidos trazidos para a home -->
                 <th:block th:each="p : ${ultimosPedidos}">
                     
+                    <!-- Linha principal do pedido: pode estar em modo normal ou edição de status -->
                     <tr th:classappend="${statusEditId != null AND p.id == statusEditId} ? 'row-disabled' : 'row-clickable'"
                         th:onclick="|toggleItens(this, '${p.id}')|">
 
+                        <!-- Quando está em modo edição de status -->
                         <th:block th:if="${statusEditId != null AND p.id == statusEditId}">
                             <td style="vertical-align: middle;" th:text="${p.id}">#</td>
                             <td style="vertical-align: middle;">
+                                <!-- Divide nome e observação, se tiver parênteses -->
                                 <th:block th:if="${#strings.contains(p.nomeClienteObservacao, '(')}">
                                     <span th:text="${#strings.substringBefore(p.nomeClienteObservacao, '(')}" style="font-weight: 600;"></span>
                                     <br/>
@@ -64,6 +73,7 @@
                             <td style="vertical-align: middle;"
                                 th:text="${'R$ ' + #numbers.formatDecimal(p.total,1,'POINT',2,'COMMA')}">R$ 0,00</td>
                             <td colspan="3" style="vertical-align: middle;">
+                                <!-- Form para escolher e salvar novo status -->
                                 <form th:action="@{/pedidos/atualizar-status}" method="POST"
                                       style="display: flex; align-items: center; gap: 6px;">
                                     <input type="hidden" name="id" th:value="${p.id}" />
@@ -76,6 +86,7 @@
                                         <option value="FINALIZADO" th:selected="${p.status.name() == 'FINALIZADO'}">Finalizado</option>
                                         <option value="CANCELADO"  th:selected="${p.status.name() == 'CANCELADO'}">Cancelado</option>
                                     </select>
+                                    <!-- Data/hora da criação -->
                                     <span style="color: var(--muted); margin-left: 10px; white-space: nowrap;"
                                           th:text="${#temporals.format(p.criadoEm, 'dd/MM HH:mm')}">
                                     </span>
@@ -85,9 +96,11 @@
                             </td>
                         </th:block>
 
+                        <!-- Quando está em modo normal (sem editar status) -->
                         <th:block th:unless="${statusEditId != null AND p.id == statusEditId}">
                             <td th:text="${p.id}">#</td>
                             <td>
+                                <!-- Exibe nome e observação em linhas separadas, se tiver parênteses -->
                                 <th:block th:if="${#strings.contains(p.nomeClienteObservacao, '(')}">
                                     <span th:text="${#strings.substringBefore(p.nomeClienteObservacao, '(')}" style="font-weight: 600;"></span>
                                     <br/>
@@ -100,6 +113,7 @@
                             <td th:text="${#lists.size(p.itens)}">0</td>
                             <td th:text="${'R$ ' + #numbers.formatDecimal(p.total,1,'POINT',2,'COMMA')}">R$ 0,00</td>
                             <td>
+                                <!-- Badge muda a cor conforme o status do pedido -->
                                 <th:block th:switch="${p.status.name()}">
                                     <span th:case="'EM_PREPARO'" class="badge badge-warning" th:text="${p.status}"></span>
                                     <span th:case="'PRONTO'" class="badge badge-info" th:text="${p.status}"></span>
@@ -111,13 +125,16 @@
                             </td>
                             <td th:text="${#temporals.format(p.criadoEm, 'dd/MM HH:mm')}">agora</td>
                             <td style="white-space: nowrap;">
+                                <!-- Ir para tela de edição dos itens do pedido -->
                                 <a th:href="@{/pedidos/editar/{id}(id=${p.id})}" class="btn btn-sm">
                                     Editar Itens
                                 </a>
+                                <!-- Botão para entrar em modo de alteração de status (se ainda não finalizado/cancelado) -->
                                 <a th:if="${p.status.name() != 'FINALIZADO' AND p.status.name() != 'CANCELADO'}"
                                    th:href="@{/(statusEditId=${p.id}, statusFiltro=${statusFiltroAtivo})}" class="btn btn-sm btn-ghost">
                                    Alterar Status
                                 </a>
+                                <!-- Permite reabrir pedidos já finalizados ou cancelados -->
                                 <form th:if="${p.status.name() == 'FINALIZADO' OR p.status.name() == 'CANCELADO'}"
                                       th:action="@{/pedidos/atualizar-status}" method="POST" style="display: inline-block; margin-left: 6px;">
                                     <input type="hidden" name="id" th:value="${p.id}" />
@@ -129,6 +146,7 @@
                         </th:block>
                     </tr>
                     
+                    <!-- Linha de detalhes dos itens do pedido, que expande ao clicar na linha principal -->
                     <tr class="itens-details-row" th:id="|itens-row-${p.id}|">
                         <td colspan="7">
                             <div class="itens-details-content">
@@ -144,6 +162,8 @@
                         </td>
                     </tr>
                 </th:block>
+
+                <!-- Mensagem quando não existem pedidos para o filtro atual -->
                 <tr th:if="${#lists.isEmpty(ultimosPedidos)}">
                     <td colspan="7" style="text-align: center; color: var(--muted);">
                         Nenhum pedido encontrado para este filtro.
@@ -153,6 +173,7 @@
         </table>
     </div>
     
+    <!-- Estilos específicos para interação da tabela da home -->
     <style>
       .badge-info { background-color: #007bff; }
       .badge-primary { background-color: #6f42c1; }
@@ -198,6 +219,7 @@
       }
     </style>
 
+    <!-- Script para abrir/fechar os detalhes dos itens ao clicar na linha -->
     <script>
         function toggleItens(clickedRow, pedidoId) {
             if (clickedRow.classList.contains('row-disabled')) {
@@ -211,5 +233,5 @@
             row.classList.toggle('active');
         }
     </script>
-    </section>
+</section>
 </html>

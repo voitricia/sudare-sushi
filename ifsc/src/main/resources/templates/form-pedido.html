@@ -1,15 +1,19 @@
 <!doctype html>
 <html lang="pt-br" xmlns:th="http://www.thymeleaf.org"
+      <!-- Usa o layout padrão, passando título da página, menu ativo e o conteúdo -->
       th:replace="~{_layout :: layout('Novo Pedido', 'pedidos', ~{::content})}">
 
 <section class="section" th:fragment="content">
+  <!-- Título da etapa de criação do pedido -->
   <h2 class="section-title">Novo Pedido (Etapa 1 de 2)</h2>
   <p class="mt-16" style="color: var(--muted);">
     Selecione uma mesa e adicione uma observação (opcional).
   </p>
 
+  <!-- Formulário para criar o pedido (apenas dados iniciais) -->
   <form method="POST" th:action="@{/pedidos/criar}">
 
+    <!-- Seleção do local do pedido (mesa, balcão, delivery, etc.) -->
     <div class="form-group mt-16">
       <label for="local">Selecione a Mesa ou Local</label>
       <select id="local" name="local" class="form-control" required>
@@ -26,15 +30,18 @@
       </select>
     </div>
 
+    <!-- Campo de observação adicional para identificar melhor o pedido -->
     <div class="form-group mt-16">
       <label for="observacao">Observação Adicional (Opcional)</label>
       <input type="text" id="observacao" name="observacao" class="form-control" 
              placeholder="Ex: Cliente com alergia a camarão, aniversário, etc." /> 
     </div>
 
+    <!-- Ações do formulário: salvar e ir para etapa 2 ou cancelar -->
     <div class="form-actions mt-22">
       <button type="submit" class="btn">Salvar e Adicionar Itens</button>
-      <a th:href="@{/}" class="btn btn-ghost">Cancelar</a> </div>
+      <a th:href="@{/}" class="btn btn-ghost">Cancelar</a>
+    </div>
 
   </form>
 

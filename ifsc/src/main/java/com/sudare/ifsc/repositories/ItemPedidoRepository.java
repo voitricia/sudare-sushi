@@ -9,8 +9,10 @@ import org.springframework.data.repository.query.Param;
 import java.time.OffsetDateTime;
 import java.util.List; 
 
+// Repositório para operações de banco de dados relacionadas aos itens dos pedidos.
 public interface ItemPedidoRepository extends JpaRepository<ItemPedido, Long> {
 
+    // Consulta personalizada para obter os itens mais vendidos em um determinado período.
     @Query("SELECT new com.sudare.ifsc.dtos.ItemTopDTO(i.produto.nome, SUM(i.quantidade)) " +
            "FROM ItemPedido i JOIN i.pedido p " +
            "WHERE p.criadoEm >= :inicioDoDia " +

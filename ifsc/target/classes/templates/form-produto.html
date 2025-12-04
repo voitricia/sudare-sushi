@@ -1,39 +1,52 @@
 <!doctype html>
 <html lang="pt-br" xmlns:th="http://www.thymeleaf.org"
+      <!-- Usa o layout padrão e define dinamicamente o título como "Novo" ou "Editar Produto" -->
       th:replace="~{_layout :: layout(${produto.id == null ? 'Novo Produto' : 'Editar Produto'}, 'cardapio', ~{::content})}">
 
 <section class="section" th:fragment="content">
+  <!-- Título também muda conforme estamos criando ou editando -->
   <h2 class="section-title" th:text="*{produto.id == null} ? 'Novo Produto' : 'Editar Produto'"></h2>
 
+  <!-- Formulário vinculado ao objeto 'produto' -->
   <form method="POST" th:action="@{/produtos/salvar}" th:object="${produto}">
     
+    <!-- Campo oculto para o ID (usado na edição) -->
     <input type="hidden" th:field="*{id}" />
 
+    <!-- Campo de nome do produto -->
     <div class="form-group mt-16">
       <label for="nome">Nome</label>
       <input type="text" id="nome" th:field="*{nome}" class="form-control" />
+      <!-- Exibição de erro de validação do campo nome -->
       <div class="form-error" th:if="${#fields.hasErrors('nome')}" th:errors="*{nome}"></div>
     </div>
 
+    <!-- Campo de categoria, preenchido com a lista enviada pelo controller -->
     <div class="form-group mt-16">
       <label for="categoria">Categoria</label>
       <select id="categoria" th:field="*{categoria}" class="form-control" required>
         <option value="" disabled selected>-- Selecione uma categoria --</option>
         <option th:each="cat : ${categorias}" th:value="${cat}" th:text="${cat}"></option>
       </select>
+      <!-- Exibição de erro de validação do campo categoria -->
       <div class="form-error" th:if="${#fields.hasErrors('categoria')}" th:errors="*{categoria}"></div>
     </div>
+
+    <!-- Campo de preço do produto -->
     <div class="form-group mt-16">
       <label for="preco">Preço (R$)</label>
       <input type="number" id="preco" th:field="*{preco}" step="0.01" class="form-control" />
+      <!-- Exibição de erro de validação do campo preço -->
       <div class="form-error" th:if="${#fields.hasErrors('preco')}" th:errors="*{preco}"></div>
     </div>
 
+    <!-- Checkbox para indicar se o produto está ativo no cardápio -->
     <div class="form-check mt-16">
       <input type="checkbox" id="ativo" th:field="*{ativo}" class="form-check-input" />
       <label for="ativo">Produto ativo (visível no cardápio)</label>
     </div>
 
+    <!-- Botões de ação: salvar ou voltar para o cardápio -->
     <div class="form-actions mt-22">
       <button type="submit" class="btn">Salvar Produto</button>
       <a th:href="@{/cardapio}" class="btn btn-ghost">Cancelar</a>
@@ -41,6 +54,7 @@
 
   </form>
   
+  <!-- Estilos específicos do formulário dessa página -->
   <style>
     .form-group label { display: block; margin-bottom: 4px; font-weight: 600; }
     .form-control {

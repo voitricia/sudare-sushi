@@ -13,6 +13,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+// Serviço para gerenciar operações relacionadas a produtos.
 @Service
 public class ProdutoService {
     private final ProdutoRepository produtoRepository;
@@ -25,27 +26,27 @@ public class ProdutoService {
         return produtoRepository.findAll(Sort.by("categoria", "nome"));
     }
 
-    @Transactional(readOnly = true)
+    @Transactional(readOnly = true) // Lista produtos agrupados por categoria em uma ordem específica.
     public Map<String, List<Produto>> listarProdutosAgrupados() {
         List<String> ordemCategorias = List.of(
             "ENTRADAS", "SASHIMIS", "HOSSOMAKIS", "URAMAKIS", "FUTOMAKIS", 
             "NIGUIRIS", "GUNKANS", "COMBINADOS", "HOTS", "TEMAKIS", "BEBIDAS"
         );
 
-        Sort sort = Sort.by("nome");
+        Sort sort = Sort.by("nome"); // Ordena os produtos por nome dentro de cada categoria.
         List<Produto> produtos = produtoRepository.findAll(sort);
 
         Map<String, List<Produto>> grouped = produtos.stream()
             .collect(Collectors.groupingBy(Produto::getCategoria));
 
-        Map<String, List<Produto>> produtosAgrupados = new LinkedHashMap<>();
+        Map<String, List<Produto>> produtosAgrupados = new LinkedHashMap<>(); // Mantém a ordem de inserção.
         for (String categoria : ordemCategorias) {
             if (grouped.containsKey(categoria)) {
                 produtosAgrupados.put(categoria, grouped.get(categoria));
             }
         }
         
-        grouped.keySet().forEach(categoria -> {
+        grouped.keySet().forEach(categoria -> { // Adiciona categorias não listadas na ordem específica.
             if (!produtosAgrupados.containsKey(categoria)) {
                 produtosAgrupados.put(categoria, grouped.get(categoria));
             }
@@ -54,6 +55,7 @@ public class ProdutoService {
         return produtosAgrupados;
     }
 
+    // Busca um produto pelo ID, lançando uma exceção se não for encontrado.
     public Produto buscar(Long id) {
         return produtoRepository.findById(id).orElseThrow(() -> new NotFoundException("Produto não encontrado"));
     }
@@ -81,6 +83,7 @@ public class ProdutoService {
         produtoRepository.delete(produto);
     }
 
+    // Busca um produto pelo ID e retorna um DTO com seus dados.
     public ProdutoDTO buscarDTO(Long id) {
         Produto p = buscar(id);
         return new ProdutoDTO(
@@ -92,7 +95,7 @@ public class ProdutoService {
         );
     }
 
-    @Transactional
+    @Transactional // Ativa ou desativa um produto com base no ID fornecido.
     public Produto atualizarAtivo(Long id, boolean ativo) {
         Produto produto = buscar(id);
         produto.setAtivo(ativo);

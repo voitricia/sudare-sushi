@@ -1,21 +1,25 @@
 <!doctype html>
 <html lang="pt-br" xmlns:th="http://www.thymeleaf.org"
+      <!-- Usa o layout padrão, passando título, menu ativo e o fragmento de conteúdo -->
       th:replace="~{_layout :: layout('Editar Pedido', 'pedidos', ~{::content})}">
 
 <section class="section" th:fragment="content">
 
   <h2 class="section-title">Editar Pedido (Etapa 2 de 2)</h2>
 
+  <!-- Informações básicas do pedido -->
   <div class="mt-16">
     <strong>Pedido ID:</strong> <span th:text="${pedido.id}">#00</span><br/>
     <strong>Status:</strong> <span th:text="${pedido.status}">ABERTO</span>
   </div>
 
+  <!-- Form para atualizar a observação/nome do cliente -->
   <form th:action="@{/pedidos/editar/observacao}" method="POST" class="form-row" style="margin-top: 16px;">
       <input type="hidden" name="pedidoId" th:value="${pedido.id}" />
       <div class="form-group" style="flex: 1;">
           <label for="nomeObservacao">Observação (Cliente/Mesa)</label>
-          <input type="text" id="nomeObservacao" name="nomeClienteObservacao" th:value="${pedido.nomeClienteObservacao}" class="form-control" />
+          <input type="text" id="nomeObservacao" name="nomeClienteObservacao"
+                 th:value="${pedido.nomeClienteObservacao}" class="form-control" />
       </div>
       <div class="form-group" style="align-self: flex-end;">
           <button type="submit" class="btn">Salvar Obs.</button>
@@ -24,12 +28,14 @@
 
   <hr style="border-color: var(--stroke); margin: 20px 0;"/>
 
+  <!-- Bloco para adicionar novos itens ao pedido -->
   <h3 class="section-subtitle">Adicionar Novo Item</h3>
   <form th:action="@{/pedidos/editar/adicionar-item}" method="POST" class="form-row">
     <input type="hidden" name="pedidoId" th:value="${pedido.id}" />
     <div class="form-group" style="flex: 3;">
       <label for="produtoId">Produto</label>
       
+      <!-- Select melhorado com TomSelect, agrupando produtos por categoria -->
       <select id="produtoId" name="produtoId" placeholder="Digite ou selecione um produto..." required>
         <option value="" selected disabled>Digite ou selecione um produto...</option>
         
@@ -44,7 +50,7 @@
             </optgroup>
         </th:block>
       </select>
-      </div>
+    </div>
     <div class="form-group" style="flex: 1;">
       <label for="quantidade">Quantidade</label>
       <input type="number" id="quantidade" name="quantidade" value="1" min="1" class="form-control" />
@@ -56,6 +62,7 @@
 
   <hr style="border-color: var(--stroke); margin: 20px 0;"/>
 
+  <!-- Tabela com os itens do pedido -->
   <h3 class="section-subtitle">Itens do Pedido</h3>
   <div class="table-wrap">
     <table class="table">
@@ -69,33 +76,55 @@
         </tr>
       </thead>
       <tbody>
+        <!-- Percorre os itens do pedido -->
         <tr th:each="item : ${pedido.itens}">
+          <!-- Modo de edição da quantidade de um item específico -->
           <th:block th:if="${editItemId != null AND item.id == editItemId}">
             <td style="vertical-align: middle;" th:text="${item.produto.nome}">Produto</td>
             <td style="vertical-align: middle;">
-              <form th:action="@{/pedidos/editar/atualizar-item}" method="POST" style="display: flex; align-items: center; gap: 6px;">
+              <form th:action="@{/pedidos/editar/atualizar-item}" method="POST"
+                    style="display: flex; align-items: center; gap: 6px;">
                 <input type="hidden" name="pedidoId" th:value="${pedido.id}" />
                 <input type="hidden" name="itemPedidoId" th:value="${item.id}" />
-                <input type="number" name="quantidade" th:value="${item.quantidade}" min="1" class="form-control" style="width: 70px; height: 34px; padding: 5px 8px;" />
+                <input type="number" name="quantidade" th:value="${item.quantidade}" min="1"
+                       class="form-control"
+                       style="width: 70px; height: 34px; padding: 5px 8px;" />
                 <button type="submit" class="btn btn-sm">OK</button>
               </form>
             </td>
-            <td style="vertical-align: middle;" th:text="${'R$ ' + #numbers.formatDecimal(item.precoUnitario,1,'POINT',2,'COMMA')}">R$ 0,00</td>
-            <td style="vertical-align: middle;" th:text="${'R$ ' + #numbers.formatDecimal(item.getSubtotal(),1,'POINT',2,'COMMA')}">R$ 0,00</td>
+            <td style="vertical-align: middle;"
+                th:text="${'R$ ' + #numbers.formatDecimal(item.precoUnitario,1,'POINT',2,'COMMA')}">
+              R$ 0,00
+            </td>
+            <td style="vertical-align: middle;"
+                th:text="${'R$ ' + #numbers.formatDecimal(item.getSubtotal(),1,'POINT',2,'COMMA')}">
+              R$ 0,00
+            </td>
             <td style="vertical-align: middle;">
               <a th:href="@{/pedidos/editar/{id}(id=${pedido.id})}" class="btn btn-sm btn-ghost">Cancelar</a>
             </td>
           </th:block>
+
+          <!-- Modo de visualização normal do item -->
           <th:block th:unless="${editItemId != null AND item.id == editItemId}">
             <td style="vertical-align: middle;" th:text="${item.produto.nome}">Produto</td>
             <td style="vertical-align: middle;" th:text="${item.quantidade}">1</td>
-            <td style="vertical-align: middle;" th:text="${'R$ ' + #numbers.formatDecimal(item.precoUnitario,1,'POINT',2,'COMMA')}">R$ 0,00</td>
-            <td style="vertical-align: middle;" th:text="${'R$ ' + #numbers.formatDecimal(item.getSubtotal(),1,'POINT',2,'COMMA')}">R$ 0,00</td>
+            <td style="vertical-align: middle;"
+                th:text="${'R$ ' + #numbers.formatDecimal(item.precoUnitario,1,'POINT',2,'COMMA')}">
+              R$ 0,00
+            </td>
+            <td style="vertical-align: middle;"
+                th:text="${'R$ ' + #numbers.formatDecimal(item.getSubtotal(),1,'POINT',2,'COMMA')}">
+              R$ 0,00
+            </td>
             <td style="vertical-align: middle; white-space: nowrap;">
+              <!-- Link para entrar em modo edição de quantidade do item -->
               <a th:href="@{/pedidos/editar/{id}(id=${pedido.id}, editItemId=${item.id})}" class="btn btn-sm">
                 Editar
               </a>
-              <form th:action="@{/pedidos/editar/remover-item}" method="POST" style="display: inline-block; margin-left: 6px;">
+              <!-- Form para remover o item do pedido -->
+              <form th:action="@{/pedidos/editar/remover-item}" method="POST"
+                    style="display: inline-block; margin-left: 6px;">
                 <input type="hidden" name="pedidoId" th:value="${pedido.id}" />
                 <input type="hidden" name="itemPedidoId" th:value="${item.id}" />
                 <button type="submit" class="btn btn-sm btn-ghost">Remover</button>
@@ -103,19 +132,27 @@
             </td>
           </th:block>
         </tr>
+
+        <!-- Mensagem quando não há itens no pedido -->
         <tr th:if="${#lists.isEmpty(pedido.itens)}">
           <td colspan="5" style="text-align: center; color: var(--muted);">
             Nenhum item adicionado a este pedido.
           </td>
         </tr>
       </tbody>
+
+      <!-- Rodapé com subtotal, taxa e total do pedido -->
       <tfoot>
         <tr style="border-top: 2px solid var(--stroke);">
             <td colspan="3" style="text-align: right; font-weight: 600;">Subtotal:</td>
-            <td colspan="2" th:text="${'R$ ' + #numbers.formatDecimal(pedido.getSubtotalItens(),1,'POINT',2,'COMMA')}">R$ 0,00</td>
+            <td colspan="2"
+                th:text="${'R$ ' + #numbers.formatDecimal(pedido.getSubtotalItens(),1,'POINT',2,'COMMA')}">
+              R$ 0,00
+            </td>
         </tr>
         <tr>
             <td colspan="3" style="text-align: right;">
+                <!-- Form para ativar/desativar a taxa de serviço -->
                 <form th:action="@{/pedidos/editar/taxa-servico}" method="POST" id="formTaxa">
                     <input type="hidden" name="pedidoId" th:value="${pedido.id}" />
                     <label style="cursor: pointer; display: flex; align-items: center; justify-content: flex-end; gap: 8px;">
@@ -127,20 +164,28 @@
                     </label>
                 </form>
             </td>
-            <td colspan="2" th:text="${'+ R$ ' + #numbers.formatDecimal(pedido.getValorTaxaServico(),1,'POINT',2,'COMMA')}">R$ 0,00</td>
+            <td colspan="2"
+                th:text="${'+ R$ ' + #numbers.formatDecimal(pedido.getValorTaxaServico(),1,'POINT',2,'COMMA')}">
+              R$ 0,00
+            </td>
         </tr>
         <tr style="font-size: 1.3em; font-weight: 800; color: var(--brand);">
           <td colspan="3" style="text-align: right;">TOTAL:</td>
-          <td colspan="2" th:text="${'R$ ' + #numbers.formatDecimal(pedido.total,1,'POINT',2,'COMMA')}">R$ 0,00</td>
+          <td colspan="2"
+              th:text="${'R$ ' + #numbers.formatDecimal(pedido.total,1,'POINT',2,'COMMA')}">
+            R$ 0,00
+          </td>
         </tr>
       </tfoot>
     </table>
   </div>
 
+  <!-- Botão para voltar à tela inicial após concluir a edição -->
   <div class="form-actions mt-22">
     <a th:href="@{/}" class="btn">Concluir Edição (Voltar)</a>
   </div>
 
+  <!-- Estilização do componente TomSelect para o select de produtos -->
   <style>
     .ts-control {
       background: #FFFFFF !important; color: #1F2937 !important; border: 1px solid #E5E7EB !important;
@@ -179,6 +224,7 @@
     }
   </style>
   
+  <!-- Inicialização do TomSelect para o campo de produto -->
   <script>
     document.addEventListener("DOMContentLoaded", () => {
       new TomSelect('#produtoId', {

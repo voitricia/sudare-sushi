@@ -21,16 +21,20 @@
             </thead>
             <tbody>
             
+                <!-- Percorre o mapa de produtos agrupados por categoria -->
                 <th:block th:each="entry : ${produtosAgrupados}">
+                    <!-- Linha de cabeçalho para cada categoria -->    
                     <tr style="background-color: var(--bg);">
                         <th colspan="4" style="font-size: 1.1em; color: var(--text); padding-left: 15px;">
                             <span th:text="${entry.key}">CATEGORIA</span>
                         </th>
                     </tr>
                     
+                    <!-- Lista os produtos daquela categoria -->
                     <tr th:each="prod : ${entry.value}">
                         <td style="font-weight: 600;" th:text="${prod.nome}">Nome do Produto</td>
-                        <td th:text="${'R$ ' + #numbers.formatDecimal(prod.preco,1,'POINT',2,'COMMA')}">R$ 0,00</td>
+                        <td th:text="${'R$ ' + #numbers.formatDecimal(prod.preco,1,'POINT',2,'COMMA')}">R$ 0,00</td> 
+                        <!-- Formata o preço para o padrão brasileiro -->
                         <td>
                             <span th:if="${prod.ativo}" class="badge badge-success">Ativo</span>
                             <span th:unless="${prod.ativo}" class="badge badge-danger">Inativo</span>

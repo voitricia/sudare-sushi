@@ -4,22 +4,27 @@ import jakarta.persistence.*;
 import jakarta.validation.constraints.*;
 import java.math.BigDecimal;
 
-@Entity
+@Entity // Entidade que representa um produto do cardápio
 public class Produto {
-    @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
+
+    @Id 
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @NotBlank
+    @NotBlank // Nome não pode ser vazio
     private String nome;
     
-    @NotNull @DecimalMin("0.0")
+    @NotNull 
+    @DecimalMin("0.0") // Preço deve ser igual ou maior que zero
     private BigDecimal preco;
 
-    @NotBlank
+    @NotBlank // Categoria obrigatória
     private String categoria;
 
+    // Indica se o produto está ativo no cardápio
     private boolean ativo = true;
 
+    // Getters e setters
     public Long getId() { 
         return id; 
     }
